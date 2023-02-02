@@ -31,16 +31,10 @@ cv::Mat ReLU(cv::Mat mat) {
 }
 
 cv::Mat Softmax(cv::Mat mat) {
-    cv::Mat exp, fx;
+    cv::Mat exp;
     cv::exp(mat, exp);
     cv::Scalar sum = cv::sum(exp);
-    fx = cv::Mat::zeros(mat.rows, mat.cols, mat.type());
-    for(int i = 0; i < fx.rows; i++) {
-        for(int j = 0; j < fx.cols; j++) {
-            fx.at<float>(i, j) = exp.at<float>(i, j) / sum[0];
-        }
-    }
-    return fx;
+    return exp / sum[0];
 }
 
 double MeanSquaredError(cv::Mat output, cv::Mat target) {

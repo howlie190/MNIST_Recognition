@@ -601,7 +601,11 @@ CMakeFiles/MLP.dir/BmpDigitRecognition.cpp.obj: D:/MNIST_Recognition/MLP/BmpDigi
   C:/OpenCV/include/opencv2/stitching/detail/camera.hpp \
   C:/OpenCV/include/opencv2/video.hpp \
   C:/OpenCV/include/opencv2/video/tracking.hpp \
-  C:/OpenCV/include/opencv2/video/background_segm.hpp
+  C:/OpenCV/include/opencv2/video/background_segm.hpp \
+  C:/msys64/mingw64/include/c++/12.2.0/fstream \
+  C:/msys64/mingw64/include/c++/12.2.0/x86_64-w64-mingw32/bits/basic_file.h \
+  C:/msys64/mingw64/include/c++/12.2.0/x86_64-w64-mingw32/bits/c++io.h \
+  C:/msys64/mingw64/include/c++/12.2.0/bits/fstream.tcc
 
 CMakeFiles/MLP.dir/Define.cpp.obj: D:/MNIST_Recognition/MLP/Define.cpp \
   D:/MNIST_Recognition/MLP/Define.h \
@@ -1801,6 +1805,8 @@ C:/msys64/mingw64/include/c++/12.2.0/type_traits:
 
 C:/msys64/mingw64/include/poppack.h:
 
+C:/msys64/mingw64/include/c++/12.2.0/fstream:
+
 C:/msys64/mingw64/include/c++/12.2.0/bits/concept_check.h:
 
 C:/msys64/mingw64/include/c++/12.2.0/bits/functexcept.h:
@@ -2295,6 +2301,8 @@ C:/OpenCV/include/opencv2/videoio.hpp:
 
 C:/msys64/mingw64/include/c++/12.2.0/bits/ranges_uninitialized.h:
 
+C:/msys64/mingw64/include/c++/12.2.0/x86_64-w64-mingw32/bits/c++io.h:
+
 C:/OpenCV/include/opencv2/core/neon_utils.hpp:
 
 C:/msys64/mingw64/include/mmiscapi.h:
@@ -2677,6 +2685,8 @@ C:/msys64/mingw64/include/psdk_inc/_socket_types.h:
 
 C:/msys64/mingw64/include/psdk_inc/_ip_types.h:
 
+C:/msys64/mingw64/include/c++/12.2.0/bits/fstream.tcc:
+
 C:/msys64/mingw64/include/psdk_inc/_xmitfile.h:
 
 C:/OpenCV/include/opencv2/flann/params.h:
@@ -2810,6 +2820,8 @@ C:/OpenCV/include/opencv2/stitching/detail/seam_finders.hpp:
 C:/OpenCV/include/opencv2/stitching/detail/blenders.hpp:
 
 C:/OpenCV/include/opencv2/video/tracking.hpp:
+
+C:/msys64/mingw64/include/c++/12.2.0/x86_64-w64-mingw32/bits/basic_file.h:
 
 D:/MNIST_Recognition/MLP/MLP.cpp:
 

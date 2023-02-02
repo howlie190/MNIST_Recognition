@@ -35,19 +35,26 @@ public:
     double              GetLoss() { return _loss; }
     virtual void        Train(char* path) = 0;
     virtual void        Test(char* path) = 0;
-    virtual void        Save(char* path) = 0;
-    virtual void        Load(char* path) = 0;
+    virtual bool        Save(char* path, char* name, bool override) = 0;
+    virtual bool        Load(char* path, char* name) = 0;
     virtual void        SetInput(cv::Mat mat) = 0;
 protected:
-    void                InitWeightHelper(DISTRIBUTION distribution, cv::Mat &mat, double mean, double standardDeviation);
-    void                UpdateWeights();
-    void                InitNeuralNetHelper(std::vector<cv::Mat>& layer, std::vector<cv::Mat>& weights, std::vector<cv::Mat>& bias);
-    void                ForwardPropagation();
-    void                SetInputLayer(cv::Mat mat) { _layer[0] = mat; }
-    void                BackPropagation();
-    double              L2Regression(std::vector<cv::Mat> weights);
-    cv::Mat             DerivativeL2Regression(cv::Mat weights);
-    cv::Mat             GetOutputLayer() { return _output; }
+    void                    InitWeightHelper(DISTRIBUTION distribution, cv::Mat &mat, double mean, double standardDeviation);
+    void                    UpdateWeights();
+    void                    InitNeuralNetHelper(std::vector<cv::Mat>& layer, std::vector<cv::Mat>& weights, std::vector<cv::Mat>& bias);
+    void                    ForwardPropagation(bool training = false);
+    void                    SetInputLayer(cv::Mat mat) { _layer[0] = mat; }
+    void                    BackPropagation();
+    double                  L2Regression(std::vector<cv::Mat> weights);
+    cv::Mat                 DerivativeL2Regression(cv::Mat weights);
+    cv::Mat                 GetOutputLayer() { return _output; }
+    std::vector<cv::Mat>    GetWeights() { return _weights; }
+    std::vector<cv::Mat>    GetBias() { return _bias; }
+    std::vector<int>        GetLayerNeuralNumber() { return _layerNeuralNumber; }
+    void                    LoadLayerNeuralNumber(std::vector<int> layerNeuralNumber) { _layerNeuralNumber = layerNeuralNumber; }
+    void                    LoadWeights(std::vector<cv::Mat> weights) { _weights = weights; }
+    void                    LoadBias(std::vector<cv::Mat> bias) { _bias = bias; }
+    void                    LoadLayer(std::vector<cv::Mat> layer) { _layer = layer; }
 private:
     std::vector<int>            _layerNeuralNumber;
     std::vector<cv::Mat>        _layer;

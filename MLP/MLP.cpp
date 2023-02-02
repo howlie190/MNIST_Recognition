@@ -49,7 +49,7 @@ void MLP::InitBias(cv::Scalar &&scalar) {
     }
 }
 
-void MLP::ForwardPropagation() {
+void MLP::ForwardPropagation(bool training) {
     for (int i = 0; i < _layerNeuralNumber.size() - 1; i++) {
         cv::Mat product = _weights[i] * _layer[i] + _bias[i];
         if (i == _layerNeuralNumber.size() - 2) {
@@ -58,8 +58,12 @@ void MLP::ForwardPropagation() {
             _layer[i + 1] = _pActivationFunction(product);
         }
     }
+
     _output = _pOutputActivationFunction(_layer[_layer.size() - 1]);
-    _loss = _pLossFunction(_output, _target) + L2Regression(_weights);
+
+    if(training) {
+        _loss = _pLossFunction(_output, _target) + L2Regression(_weights);
+    }
 }
 
 void MLP::BackPropagation() {

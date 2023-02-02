@@ -7,6 +7,7 @@
 #include <opencv2/opencv.hpp>
 #include <climits>
 #include <float.h>
+#include <fstream>
 
 void BmpDigitRecognition::SetInput(cv::Mat mat) {
     cv::Mat temp(INPUT_LAYER_SIZE, 1, CV_32FC1);
@@ -30,7 +31,7 @@ void BmpDigitRecognition::TrainHelper(char *path) {
     char                tPath[CHAR_MAX];
     bool                tFlagThreshold  = false;
     bool                tFlagFirst      = true;
-    int                 tCurrentTarget;
+    int                 tCurrentTarget  = INT_MIN;
 
     strcpy(tPath, path);
     strcat(tPath, "*.*");
@@ -62,7 +63,7 @@ void BmpDigitRecognition::TrainHelper(char *path) {
                 tTarget.at<float>(tCurrentTarget, 0)    = 1.0;
                 SetTarget(tTarget);
 
-                ForwardPropagation();
+                ForwardPropagation(true);
 
                 if(tFlagFirst) {
                     std::cout << tFileName[0] << " : " << GetLoss() << std::endl;
@@ -137,10 +138,106 @@ void BmpDigitRecognition::Test(char *path) {
     ::FindClose(hFind);
 }
 
-void BmpDigitRecognition::Save(char *path) {
+bool BmpDigitRecognition::Save(char* path, char* name, bool override) {
+    std::string filePath;
+    if(strcmp(path, "") == 0) {
+        filePath = std::string(path) + std::string(name) + ".bin";
+    } else {
+        filePath = std::string(path) + "\\" + std::string(name) + ".bin";
+    }
 
+    if(!override) {
+        std::ifstream check(filePath);
+        if(check.is_open()) {
+            std::cout << "File is Already Exists!" << std::endl;
+            check.close();
+            return false;
+        }
+    }
+
+
+    std::ofstream save(filePath, std::ios::binary | std::ios::trunc);
+
+    std::vector<int> layerNumber = GetLayerNeuralNumber();
+    save << layerNumber.size() << " ";
+    for(int i = 0; i < layerNumber.size(); i++) {
+        save << layerNumber[i] << " ";
+    }
+
+    std::vector<cv::Mat> weights = GetWeights();
+    for(int i = 0; i < weights.size(); i++) {
+        for(int j = 0; j < weights[i].rows; j++) {
+            for(int k = 0; k < weights[i].cols; k++) {
+                save << weights[i].at<float>(j, k) << " ";
+            }
+        }
+    }
+
+    std::vector<cv::Mat> bias = GetBias();
+    for(int i = 0; i < bias.size(); i++) {
+        for(int j = 0; j < bias[i].rows; j++) {
+            for(int k = 0; k < bias[i].cols; k++) {
+                save << bias[i].at<float>(j, k) << " ";
+            }
+        }
+    }
+
+    save.close();
+    return true;
 }
 
-void BmpDigitRecognition::Load(char *path) {
+bool BmpDigitRecognition::Load(char *path, char* name) {
+    int             layerSize;
+    std::string     filePath;
 
+    if(strcmp(path, "") == 0) {
+        filePath = std::string(path) + std::string(name) + ".bin";
+    } else {
+        filePath = std::string(path) + "\\" + std::string(name) + ".bin";
+    }
+
+    std::ifstream load(filePath, std::ios::binary);
+    if(!load.is_open()) {
+        std::cout << "File Cannot be Opened!" << std::endl;
+        return false;
+    }
+
+    load >> layerSize;
+    std::vector<int> layerNumber(layerSize);
+    for(int i = 0; i < layerNumber.size(); i++) {
+        load >> layerNumber[i];
+    }
+
+    std::vector<cv::Mat> weights(layerNumber.size() - 1);
+    for(int i = 0; i < weights.size(); i++) {
+        weights[i] = cv::Mat::zeros(layerNumber[i + 1], layerNumber[i], CV_32FC1);
+        for(int j = 0; j < weights[i].rows; j++) {
+            for(int k = 0; k < weights[i].cols; k++) {
+                load >> weights[i].at<float>(j, k);
+            }
+        }
+    }
+
+    std::vector<cv::Mat> bias(layerNumber.size() - 1);
+    for(int i = 0; i < bias.size(); i++) {
+        bias[i] = cv::Mat::zeros(layerNumber[i + 1], 1, CV_32FC1);
+        for(int j = 0; j < bias[i].rows; j++) {
+            for(int k = 0; k < bias[i].cols; k++) {
+                load >> bias[i].at<float>(j, k);
+            }
+        }
+    }
+
+    std::vector<cv::Mat> layer(layerNumber.size());
+    for (int i = 0; i < layer.size(); i++) {
+        layer[i].create(layerNumber[i], 1, CV_32FC1);
+    }
+
+    LoadLayerNeuralNumber(layerNumber);
+    LoadWeights(weights);
+    LoadBias(bias);
+    LoadLayer(layer);
+
+    load.close();
+    return true;
 }

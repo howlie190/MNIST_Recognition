@@ -21,8 +21,8 @@ public:
     }
     void Train(char* path) override;
     void Test(char* path) override;
-    void Save(char* path) override;
-    void Load(char* path) override;
+    bool Save(char* path, char* name, bool override) override;
+    bool Load(char* path, char* name) override;
     void SetInput(cv::Mat mat) override;
     void SetThreshold(double threshold) { _threshold = threshold; }
     void SetLoopCount(int loopCount) { _loopCount = loopCount; }

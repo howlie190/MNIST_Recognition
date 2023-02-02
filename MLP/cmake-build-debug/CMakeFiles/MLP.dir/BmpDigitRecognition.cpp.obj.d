@@ -554,4 +554,8 @@ CMakeFiles/MLP.dir/BmpDigitRecognition.cpp.obj: \
  C:/OpenCV/include/opencv2/stitching/detail/camera.hpp \
  C:/OpenCV/include/opencv2/video.hpp \
  C:/OpenCV/include/opencv2/video/tracking.hpp \
- C:/OpenCV/include/opencv2/video/background_segm.hpp
+ C:/OpenCV/include/opencv2/video/background_segm.hpp \
+ C:/msys64/mingw64/include/c++/12.2.0/fstream \
+ C:/msys64/mingw64/include/c++/12.2.0/x86_64-w64-mingw32/bits/basic_file.h \
+ C:/msys64/mingw64/include/c++/12.2.0/x86_64-w64-mingw32/bits/c++io.h \
+ C:/msys64/mingw64/include/c++/12.2.0/bits/fstream.tcc
