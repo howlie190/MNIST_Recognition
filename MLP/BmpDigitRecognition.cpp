@@ -34,7 +34,7 @@ void BmpDigitRecognition::TrainHelper(char *path) {
     int                 tCurrentTarget  = INT_MIN;
 
     strcpy(tPath, path);
-    strcat(tPath, "*.*");
+    strcat(tPath, "\\*.*");
 
     HANDLE hFind = ::FindFirstFile(tPath, &tFD);
 
@@ -45,6 +45,7 @@ void BmpDigitRecognition::TrainHelper(char *path) {
                 char    tFilePath[CHAR_MAX];
 
                 strcpy(tFilePath, path);
+                strcat(tFilePath, "\\");
                 strcat(tFilePath, tFileName);
 
                 cv::Mat image = cv::imread(tFilePath);
@@ -93,7 +94,7 @@ void BmpDigitRecognition::Test(char *path) {
     double                  tCompare;
 
     strcpy(tPath, path);
-    strcat(tPath, "*.*");
+    strcat(tPath, "\\*.*");
 
     hFind = ::FindFirstFile(tPath, &tFD);
 
@@ -104,6 +105,7 @@ void BmpDigitRecognition::Test(char *path) {
                 char    tFilePath[CHAR_MAX];
 
                 strcpy(tFilePath, path);
+                strcat(tFilePath, "\\");
                 strcat(tFilePath, tFileName);
 
                 cv::Mat image = cv::imread(tFilePath);
@@ -141,7 +143,7 @@ void BmpDigitRecognition::Test(char *path) {
 bool BmpDigitRecognition::Save(char* path, char* name, bool override) {
     std::string filePath;
     if(strcmp(path, "") == 0) {
-        filePath = std::string(path) + std::string(name) + ".bin";
+        filePath = ".\\save\\" + std::string(name) + ".bin";
     } else {
         filePath = std::string(path) + "\\" + std::string(name) + ".bin";
     }
@@ -191,7 +193,7 @@ bool BmpDigitRecognition::Load(char *path, char* name) {
     std::string     filePath;
 
     if(strcmp(path, "") == 0) {
-        filePath = std::string(path) + std::string(name) + ".bin";
+        filePath = ".\\save\\" + std::string(name) + ".bin";
     } else {
         filePath = std::string(path) + "\\" + std::string(name) + ".bin";
     }

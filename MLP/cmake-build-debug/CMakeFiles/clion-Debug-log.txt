@@ -1,9 +1,22 @@
-"C:\Program Files\JetBrains\CLion 2022.3.2\bin\cmake\win\x64\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - MinGW Makefiles" -S D:\MNIST_Recognition\MLP -B D:\MNIST_Recognition\MLP\cmake-build-debug
+"C:\Program Files\JetBrains\CLion 2022.3.2\bin\cmake\win\x64\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug "-DCMAKE_MAKE_PROGRAM=C:/Program Files/JetBrains/CLion 2022.3.2/bin/ninja/win/x64/ninja.exe" -G Ninja -S D:\MNIST_Recognition\MLP -B D:\MNIST_Recognition\MLP\cmake-build-debug
+-- The C compiler identification is GNU 12.2.0
+-- The CXX compiler identification is GNU 12.2.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/msys64/mingw64/bin/cc.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/msys64/mingw64/bin/c++.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
 -- OpenCV ARCH: x64
 -- OpenCV RUNTIME: mingw
 -- OpenCV STATIC: OFF
+-- Found OpenCV: C:/OpenCV (found version "4.6.0") 
 -- Found OpenCV 4.6.0 in C:/OpenCV/x64/mingw/lib
--- You might need to add C:/OpenCV/x64/mingw/bin to your PATH to be able to run your applications.
+-- You might need to add C:\OpenCV\x64\mingw\bin to your PATH to be able to run your applications.
 -- Configuring done
 -- Generating done
 -- Build files have been written to: D:/MNIST_Recognition/MLP/cmake-build-debug
