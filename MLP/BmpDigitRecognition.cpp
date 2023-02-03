@@ -6,8 +6,8 @@
 #include <windows.h>
 #include <opencv2/opencv.hpp>
 #include <climits>
-#include <float.h>
 #include <fstream>
+#include <regex>
 
 void BmpDigitRecognition::SetInput(cv::Mat mat) {
     cv::Mat temp(INPUT_LAYER_SIZE, 1, CV_32FC1);
@@ -188,17 +188,16 @@ bool BmpDigitRecognition::Save(char* path, char* name, bool override) {
     return true;
 }
 
-bool BmpDigitRecognition::Load(char *path, char* name) {
+bool BmpDigitRecognition::Load(char *path) {
     int             layerSize;
-    std::string     filePath;
+    std::regex      pattern(".*\\.bin$");
 
-    if(strcmp(path, "") == 0) {
-        filePath = ".\\save\\" + std::string(name) + ".bin";
-    } else {
-        filePath = std::string(path) + "\\" + std::string(name) + ".bin";
+    if(!std::regex_match(path, pattern)) {
+        std::cout << "File extension is not .bin!" << std::endl;
+        return false;
     }
 
-    std::ifstream load(filePath, std::ios::binary);
+    std::ifstream load(path, std::ios::binary);
     if(!load.is_open()) {
         std::cout << "File Cannot be Opened!" << std::endl;
         return false;

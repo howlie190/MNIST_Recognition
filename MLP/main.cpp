@@ -7,7 +7,7 @@ int main(int argc, char **argv) {
     BDR.InitNeuralNet({INPUT_LAYER_SIZE, 64, 64, OUTPUT_LAYER_SIZE});
     BDR.InitWeights(DISTRIBUTION::NORMAL, 0.0, 0.05);
     BDR.InitBias(cv::Scalar(0.0));
-    BDR.Load("D:", "test");
+    BDR.Load(".\\save\\test.bin");
     BDR.SetActivationFunction(ACTIVATION_FUNCTION::SIGMOID);
     BDR.SetOutputActivationFunction(ACTIVATION_FUNCTION::SOFTMAX);
     BDR.SetLossFunction(LOSS_FUNCTION::MEAN_SQUARED_ERROR);

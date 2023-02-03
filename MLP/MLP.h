@@ -36,7 +36,7 @@ public:
     virtual void        Train(char* path) = 0;
     virtual void        Test(char* path) = 0;
     virtual bool        Save(char* path, char* name, bool override) = 0;
-    virtual bool        Load(char* path, char* name) = 0;
+    virtual bool        Load(char* path) = 0;
     virtual void        SetInput(cv::Mat mat) = 0;
 protected:
     void                    InitWeightHelper(DISTRIBUTION distribution, cv::Mat &mat, double mean, double standardDeviation);
