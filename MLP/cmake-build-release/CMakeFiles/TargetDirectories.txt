@@ -1,3 +1,3 @@
-D:/MNIST_Recognition/MLP/cmake-build-release/CMakeFiles/MLP.dir
-D:/MNIST_Recognition/MLP/cmake-build-release/CMakeFiles/edit_cache.dir
-D:/MNIST_Recognition/MLP/cmake-build-release/CMakeFiles/rebuild_cache.dir
+D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/CMakeFiles/MLP.dir
+D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/CMakeFiles/edit_cache.dir
+D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/CMakeFiles/rebuild_cache.dir

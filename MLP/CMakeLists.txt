@@ -3,7 +3,6 @@ project(MLP)
 
 set(CMAKE_CXX_STANDARD 23)
 
-set(OpenCV_DIR C:\\OpenCV)
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 

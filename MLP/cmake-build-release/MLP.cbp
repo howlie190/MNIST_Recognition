@@ -5,121 +5,123 @@
 		<Option title="MLP"/>
 		<Option makefile_is_custom="1"/>
 		<Option compiler="gcc"/>
-		<Option virtualFolders="CMake Files\;CMake Files\OpenCV\;CMake Files\OpenCV\x64\;CMake Files\OpenCV\x64\mingw\;CMake Files\OpenCV\x64\mingw\lib\;"/>
+		<Option virtualFolders="CMake Files\;CMake Files\opencv\;CMake Files\opencv\build\;CMake Files\opencv\build\install\;CMake Files\opencv\build\install\x64\;CMake Files\opencv\build\install\x64\mingw\;CMake Files\opencv\build\install\x64\mingw\lib\;"/>
 		<Build>
 			<Target title="all">
-				<Option working_dir="D:/MNIST_Recognition/MLP/cmake-build-release"/>
+				<Option working_dir="D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 all"/>
-					<CompileFile command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="MLP">
-				<Option output="D:/MNIST_Recognition/MLP/cmake-build-release/MLP.exe" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="D:/MNIST_Recognition/MLP/cmake-build-release"/>
+				<Option output="D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/MLP.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
 				<Option compiler="gcc"/>
 				<Compiler>
-					<Add directory="C:/OpenCV/include"/>
+					<Add directory="C:/opencv/build/install/include"/>
 					<Add directory="C:/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/12.2.0/../../../../include/c++/12.2.0"/>
 					<Add directory="C:/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/12.2.0/../../../../include/c++/12.2.0/x86_64-w64-mingw32"/>
 					<Add directory="C:/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/12.2.0/../../../../include/c++/12.2.0/backward"/>
 					<Add directory="C:/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/12.2.0/include"/>
 					<Add directory="C:/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/12.2.0/../../../../include"/>
 					<Add directory="C:/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/12.2.0/include-fixed"/>
+					<Add directory="C:/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/12.2.0/../../../../x86_64-w64-mingw32/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 MLP"/>
-					<CompileFile command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 MLP"/>
+					<CompileFile command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="MLP/fast">
-				<Option output="D:/MNIST_Recognition/MLP/cmake-build-release/MLP.exe" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="D:/MNIST_Recognition/MLP/cmake-build-release"/>
+				<Option output="D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/MLP.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
 				<Option compiler="gcc"/>
 				<Compiler>
-					<Add directory="C:/OpenCV/include"/>
+					<Add directory="C:/opencv/build/install/include"/>
 					<Add directory="C:/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/12.2.0/../../../../include/c++/12.2.0"/>
 					<Add directory="C:/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/12.2.0/../../../../include/c++/12.2.0/x86_64-w64-mingw32"/>
 					<Add directory="C:/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/12.2.0/../../../../include/c++/12.2.0/backward"/>
 					<Add directory="C:/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/12.2.0/include"/>
 					<Add directory="C:/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/12.2.0/../../../../include"/>
 					<Add directory="C:/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/12.2.0/include-fixed"/>
+					<Add directory="C:/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/12.2.0/../../../../x86_64-w64-mingw32/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 MLP/fast"/>
-					<CompileFile command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 MLP/fast"/>
+					<CompileFile command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="edit_cache">
-				<Option working_dir="D:/MNIST_Recognition/MLP/cmake-build-release"/>
+				<Option working_dir="D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 edit_cache"/>
-					<CompileFile command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="rebuild_cache">
-				<Option working_dir="D:/MNIST_Recognition/MLP/cmake-build-release"/>
+				<Option working_dir="D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
-					<CompileFile command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/msys64/mingw64/bin/mingw32-make.exe -f &quot;D:/Git Work Space/MNIST_Recognition/MLP/cmake-build-release/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="D:/MNIST_Recognition/MLP/BmpDigitRecognition.cpp">
+		<Unit filename="D:/Git Work Space/MNIST_Recognition/MLP/BmpDigitRecognition.cpp">
 			<Option target="MLP"/>
 		</Unit>
-		<Unit filename="D:/MNIST_Recognition/MLP/BmpDigitRecognition.h">
+		<Unit filename="D:/Git Work Space/MNIST_Recognition/MLP/BmpDigitRecognition.h">
 			<Option target="MLP"/>
 		</Unit>
-		<Unit filename="D:/MNIST_Recognition/MLP/Define.cpp">
+		<Unit filename="D:/Git Work Space/MNIST_Recognition/MLP/Define.cpp">
 			<Option target="MLP"/>
 		</Unit>
-		<Unit filename="D:/MNIST_Recognition/MLP/Define.h">
+		<Unit filename="D:/Git Work Space/MNIST_Recognition/MLP/Define.h">
 			<Option target="MLP"/>
 		</Unit>
-		<Unit filename="D:/MNIST_Recognition/MLP/MLP.cpp">
+		<Unit filename="D:/Git Work Space/MNIST_Recognition/MLP/MLP.cpp">
 			<Option target="MLP"/>
 		</Unit>
-		<Unit filename="D:/MNIST_Recognition/MLP/MLP.h">
+		<Unit filename="D:/Git Work Space/MNIST_Recognition/MLP/MLP.h">
 			<Option target="MLP"/>
 		</Unit>
-		<Unit filename="D:/MNIST_Recognition/MLP/main.cpp">
+		<Unit filename="D:/Git Work Space/MNIST_Recognition/MLP/main.cpp">
 			<Option target="MLP"/>
 		</Unit>
-		<Unit filename="D:/MNIST_Recognition/MLP/CMakeLists.txt">
+		<Unit filename="D:/Git Work Space/MNIST_Recognition/MLP/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
 		</Unit>
-		<Unit filename="D:/MNIST_Recognition/MLP/OpenCV/OpenCVConfig-version.cmake">
-			<Option virtualFolder="CMake Files\OpenCV\"/>
+		<Unit filename="D:/Git Work Space/MNIST_Recognition/MLP/opencv/build/install/OpenCVConfig-version.cmake">
+			<Option virtualFolder="CMake Files\opencv\build\install\"/>
 		</Unit>
-		<Unit filename="D:/MNIST_Recognition/MLP/OpenCV/OpenCVConfig.cmake">
-			<Option virtualFolder="CMake Files\OpenCV\"/>
+		<Unit filename="D:/Git Work Space/MNIST_Recognition/MLP/opencv/build/install/OpenCVConfig.cmake">
+			<Option virtualFolder="CMake Files\opencv\build\install\"/>
 		</Unit>
-		<Unit filename="D:/MNIST_Recognition/MLP/OpenCV/x64/mingw/lib/OpenCVConfig.cmake">
-			<Option virtualFolder="CMake Files\OpenCV\x64\mingw\lib\"/>
+		<Unit filename="D:/Git Work Space/MNIST_Recognition/MLP/opencv/build/install/x64/mingw/lib/OpenCVConfig.cmake">
+			<Option virtualFolder="CMake Files\opencv\build\install\x64\mingw\lib\"/>
 		</Unit>
-		<Unit filename="D:/MNIST_Recognition/MLP/OpenCV/x64/mingw/lib/OpenCVModules-release.cmake">
-			<Option virtualFolder="CMake Files\OpenCV\x64\mingw\lib\"/>
+		<Unit filename="D:/Git Work Space/MNIST_Recognition/MLP/opencv/build/install/x64/mingw/lib/OpenCVModules-release.cmake">
+			<Option virtualFolder="CMake Files\opencv\build\install\x64\mingw\lib\"/>
 		</Unit>
-		<Unit filename="D:/MNIST_Recognition/MLP/OpenCV/x64/mingw/lib/OpenCVModules.cmake">
-			<Option virtualFolder="CMake Files\OpenCV\x64\mingw\lib\"/>
+		<Unit filename="D:/Git Work Space/MNIST_Recognition/MLP/opencv/build/install/x64/mingw/lib/OpenCVModules.cmake">
+			<Option virtualFolder="CMake Files\opencv\build\install\x64\mingw\lib\"/>
 		</Unit>
 	</Project>
 </CodeBlocks_project_file>

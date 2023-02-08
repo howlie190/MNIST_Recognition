@@ -8,12 +8,14 @@
 #include <climits>
 #include <fstream>
 #include <regex>
+#include <iostream>
+#include <opencv2/core.hpp>
 
 void BmpDigitRecognition::SetInput(cv::Mat mat) {
     cv::Mat temp(INPUT_LAYER_SIZE, 1, CV_32FC1);
     for (int i = 0, k = 0; i < mat.rows; i++) {
         for (int j = 0; j < mat.cols; j++, k++) {
-            temp.at<float>(k, 0) = (float) mat.at<uchar>(i, j) / 255;
+            temp.at<float>(k, 0) = mat.at<uchar>(i, j) / (double)255;
         }
     }
     SetInputLayer(std::move(temp));
@@ -48,7 +50,7 @@ void BmpDigitRecognition::TrainHelper(char *path) {
                 strcat(tFilePath, "\\");
                 strcat(tFilePath, tFileName);
 
-                cv::Mat image = cv::imread(tFilePath);
+                cv::Mat image = cv::imread(tFilePath, cv::IMREAD_GRAYSCALE);
 
                 SetInput(image);
 
@@ -116,7 +118,7 @@ void BmpDigitRecognition::Test(char *path) {
                 strcat(tFilePath, "\\");
                 strcat(tFilePath, tFileName);
 
-                cv::Mat image = cv::imread(tFilePath);
+                cv::Mat image = cv::imread(tFilePath, cv::IMREAD_GRAYSCALE);
                 SetInput(image);
 
                 ForwardPropagation();
