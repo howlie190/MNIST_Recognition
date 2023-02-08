@@ -27,9 +27,12 @@ public:
     void SetThreshold(double threshold) { _threshold = threshold; }
     void SetLoopCount(int loopCount) { _loopCount = loopCount; }
     void TrainHelper(char* path);
+    void SetSelect(int target) { _choose = target; _select = true; }
 private:
     double  _threshold;
     int     _loopCount;
+    int     _choose;
+    bool    _select = false;
 };
 
 

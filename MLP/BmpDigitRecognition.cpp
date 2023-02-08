@@ -13,7 +13,7 @@ void BmpDigitRecognition::SetInput(cv::Mat mat) {
     cv::Mat temp(INPUT_LAYER_SIZE, 1, CV_32FC1);
     for (int i = 0, k = 0; i < mat.rows; i++) {
         for (int j = 0; j < mat.cols; j++, k++) {
-            temp.at<float>(k, 0) = (int) mat.at<uchar>(i, j);
+            temp.at<float>(k, 0) = (float) mat.at<uchar>(i, j) / 255;
         }
     }
     SetInputLayer(std::move(temp));
@@ -55,6 +55,8 @@ void BmpDigitRecognition::TrainHelper(char *path) {
                  if(tCurrentTarget != std::atoi(&tFileName[0])) {
                     tFlagThreshold  = false;
                     tFlagFirst      = true;
+                    if(tCurrentTarget != INT_MIN)
+                        std::cout << "\tEnd : " << GetLoss() << std::endl;
                 } else if(tFlagThreshold) {
                     continue;
                 }
@@ -64,10 +66,14 @@ void BmpDigitRecognition::TrainHelper(char *path) {
                 tTarget.at<float>(tCurrentTarget, 0)    = 1.0;
                 SetTarget(tTarget);
 
+                if(_select && tCurrentTarget != _choose) {
+                    continue;
+                }
+
                 ForwardPropagation(true);
 
                 if(tFlagFirst) {
-                    std::cout << tFileName[0] << " : " << GetLoss() << std::endl;
+                    std::cout << tFileName[0] << " : " << GetLoss();
                     tFlagFirst      = false;
                 }
 
@@ -79,6 +85,8 @@ void BmpDigitRecognition::TrainHelper(char *path) {
             }
         } while (::FindNextFile(hFind, &tFD));
     }
+
+    std::cout << "\tEnd : " << GetLoss() << std::endl;
 
     ::FindClose(hFind);
 }
