@@ -177,6 +177,12 @@ double BmpDigitRecognition::Test(char *path) {
     int tNumberOfValidData = 0;
     double tCompare;
 
+    _hMapFile   = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, TEXT("FileMapping"));
+    _pBuf       = (LPTSTR)MapViewOfFile(_hMapFile, FILE_MAP_ALL_ACCESS, 0, 0, sizeof( char[1024]));
+
+    _hEventRead     = OpenEvent(EVENT_ALL_ACCESS, FALSE, "EventCanReadMemory");
+    _hEventWrite    = OpenEvent(EVENT_ALL_ACCESS, FALSE, "EventCanWriteMemory");
+
     strcpy(tPath, path);
     strcat(tPath, "\\*.*");
 
@@ -209,6 +215,14 @@ double BmpDigitRecognition::Test(char *path) {
                 }
 #ifndef MNIST_Recognition_Library_EXPORTS
                 std::cout << "Target : " << tFileName[0] << " Output : " << tOutputResult << std::endl;
+#else
+                _logFile = std::string(tFileName) + " Target : ";
+                _logFile.push_back(tFileName[0]);
+                _logFile += " Output : " + std::to_string(tOutputResult);
+                WaitForSingleObject(_hEventWrite, 1);
+                CopyMemory(_pBuf, _logFile.c_str(), strlen(_logFile.c_str()));
+                ResetEvent(_hEventWrite);
+                SetEvent(_hEventRead);
 #endif
                 if (std::atoi(&tFileName[0]) == tOutputResult) {
                     tNumberOfValidData++;
@@ -222,6 +236,11 @@ double BmpDigitRecognition::Test(char *path) {
     std::cout << "Accuracy : " << tNumberOfValidData / (float) tTotalNumberOfData << std::endl;
 #endif
     ::FindClose(hFind);
+
+    UnmapViewOfFile(_pBuf);
+    CloseHandle(_hEventWrite);
+    CloseHandle(_hEventRead);
+    CloseHandle(_hMapFile);
 
     return tNumberOfValidData / (float) tTotalNumberOfData;
 }

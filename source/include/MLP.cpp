@@ -103,7 +103,7 @@ void MLP::ForwardPropagation(bool training) {
     _output = _pOutputActivationFunction(_layer[_layer.size() - 1]);
 
     if (training) {
-        _loss = _pLossFunction(_output, _target);
+        _loss = _pLossFunction(_output, _target) + L2Regression(_weights);
     }
 }
 
