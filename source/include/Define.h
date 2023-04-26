@@ -21,30 +21,46 @@
 extern "C" {
 #endif
 
-typedef cv::Mat (*pActivationFunction)(cv::Mat);
+typedef cv::Mat (*pActivationFunction)(const cv::Mat&);
+typedef double  (*pLossFunction)(const cv::Mat&, const cv::Mat&);
+typedef void    (*pDerivativeOutputFunction)(const cv::Mat&, const cv::Mat&, cv::Mat*);
+typedef void    (*pDerivativeFunction)(const cv::Mat&, cv::Mat*);
 
-typedef double  (*pLossFunction)(cv::Mat, cv::Mat);
+DEFINE_API cv::Mat Sigmoid(const cv::Mat&);
+DEFINE_API cv::Mat Tanh(const cv::Mat&);
+DEFINE_API cv::Mat ReLU(const cv::Mat&);
+DEFINE_API cv::Mat Softmax(const cv::Mat&);
 
-typedef void    (*pDerivativeOutputFunction)(cv::Mat, cv::Mat, cv::Mat &);
-
-typedef void    (*pDerivativeFunction)(cv::Mat, cv::Mat &);
-
-DEFINE_API cv::Mat Sigmoid(cv::Mat mat);
-
-DEFINE_API cv::Mat Tanh(cv::Mat mat);
-
-DEFINE_API cv::Mat ReLU(cv::Mat mat);
-
-DEFINE_API cv::Mat Softmax(cv::Mat mat);
-
-DEFINE_API double  MeanSquaredError(cv::Mat output, cv::Mat target);
-
-DEFINE_API void    DerivativeSoftmaxMSE(cv::Mat input, cv::Mat target, cv::Mat &output);
-
-DEFINE_API void    DerivativeSigmoidMSE(cv::Mat input, cv::Mat target, cv::Mat &output);
-
-DEFINE_API void    DerivativeSigmoid(cv::Mat input, cv::Mat &output);
-
+DEFINE_API double  MeanSquaredError(const cv::Mat&, const cv::Mat&);
+DEFINE_API double  CrossEntropy(const cv::Mat&, const cv::Mat&);
+DEFINE_API void    DerivativeSoftmaxMSE(const cv::Mat&, const cv::Mat&, cv::Mat*);
+DEFINE_API void    DerivativeSoftmaxCrossEntropy(const cv::Mat&, const cv::Mat&, cv::Mat*);
+DEFINE_API void    DerivativeSigmoidMSE(const cv::Mat&, const cv::Mat&, cv::Mat*);
+DEFINE_API void    DerivativeSigmoid(const cv::Mat&, cv::Mat*);
+DEFINE_API void    DerivativeSigmoidCrossEntropy(const cv::Mat&, const cv::Mat&, cv::Mat*);
+DEFINE_API void    DerivativeTanh(const cv::Mat&, cv::Mat*);
+DEFINE_API void    DerivativeReLU(const cv::Mat&, cv::Mat*);
+DEFINE_API void    CalMatTotal(const std::vector<cv::Mat>&, cv::Mat*, int, int);
+DEFINE_API void    CalMatAvg(const cv::Mat&, int number, cv::Mat*);
+DEFINE_API void    CalVecMatProduct(const std::vector<std::vector<cv::Mat>>&,
+                                    const std::vector<std::vector<cv::Mat>>&,
+                                    std::vector<cv::Mat>*,
+                                    int,
+                                    int,
+                                    int,
+                                    int);
+DEFINE_API void    CalWeightLayerProduct(const std::vector<cv::Mat>&,
+                                         std::vector<std::vector<cv::Mat>>*,
+                                         int,
+                                         int,
+                                         int,
+                                         int);
+DEFINE_API void CalWeightLayerProduct(const std::vector<cv::Mat> &,
+                           std::vector<std::vector<cv::Mat>> *,
+                           int,
+                           int,
+                           int,
+                           int);
 enum class DISTRIBUTION {
     NORMAL,
     UNIFORM
@@ -59,12 +75,17 @@ enum class ACTIVATION_FUNCTION {
 
 enum class LOSS_FUNCTION {
     MEAN_SQUARED_ERROR = 0,
+    CROSS_ENTROPY
 };
 
 enum class DERIVATIVE_FUNCTION {
     SIGMOID,
     SIGMOID_MSE,
-    SOFTMAX_MSE
+    SOFTMAX_MSE,
+    SOFTMAX_CROSS_ENTROPY,
+    SIGMOID_CROSS_ENTROPY,
+    TANH,
+    RELU
 };
 
 #ifdef __cplusplus

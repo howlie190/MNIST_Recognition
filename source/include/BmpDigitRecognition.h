@@ -19,67 +19,44 @@
 extern "C" {
 #endif
 
-struct DataFormat {
-    std::vector<int>        layer;
-    std::vector<cv::Mat>    weight;
-    std::vector<cv::Mat>    bias;
-};
-
-
-
 class BmpDigitRecognition : public MLP {
 public:
-    BmpDigitRecognition();
+    double      Test(char*) override;
 
-    void        Train(char *path) override;
+    int         SingleTest(char*);
 
-    double      Test(char *path) override;
+    bool        Save(char*, char*, bool) override;
+    bool        Load(char*) override;
 
-    int         SingleTest(char *path);
-
-    bool        Save(char *path, char *name, bool override) override;
-
-    bool        Load(char *path) override;
-
-    void        SetInput(cv::Mat mat) override;
-
-    void        SetThreshold(double threshold);
-
-    void        SetLoopCount(int loopCount);
-
-    void        TrainHelper(char *path);
-
-    void        SetSelect(int target);
-
-    void        SetStdInputOutput(HANDLE, HANDLE);
-
+    void        Train(char*) override;
+    void        SetInputTraining(const int, const cv::Mat&) override;
+    void        SetInput(const cv::Mat&) override;
+    void        SetThreshold(const double);
+    void        SetLoopCount(const int);
+    void        TrainHelper();
     void        Terminate();
-
 private:
-    double          _threshold;
+    std::vector<std::pair<std::string, cv::Mat>>        _trainingData;
+    std::vector<std::pair<std::string, cv::Mat>>        _testingData;
 
-    int             _loopCount;
-    int             _choose;
-    int             _strDataLength;
+    std::vector<std::pair<std::string, std::string>>    _fileName;
 
-    char            _sendData[1024];
+    std::vector<double>                                 _lossValue;
 
-    bool            _select = false;
-    bool            _stopTraining;
+    double                                              _threshold;
+    double                                              _loss;
 
-    HANDLE          _hStdIn;
-    HANDLE          _hStdOut;
+    int                                                 _loopCount;
 
-    DWORD           _dwRead;
-    DWORD           _dwWritten;
+    bool                                                _stopTraining;
 
-    std::string     _logFile;
+    std::string                                         _logFile;
 
-    HANDLE          _hMapFile;
-    HANDLE          _hMutex;
-    HANDLE          _hEventRead;
-    HANDLE          _hEventWrite;
-    LPTSTR          _pBuf;
+    HANDLE                                              _hMapFile;
+    HANDLE                                              _hEventRead;
+    HANDLE                                              _hEventWrite;
+
+    LPTSTR                                              _pBuf;
 };
 
 #ifdef __cplusplus
