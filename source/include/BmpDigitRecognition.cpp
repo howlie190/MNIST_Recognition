@@ -15,10 +15,9 @@
 #include <minwinbase.h>
 #include <random>
 #include "matplotlibcpp.h"
+#include "gnuplot-iostream.h"
 
 #pragma comment(lib, "Shlwapi.lib")
-
-namespace plt = matplotlibcpp;
 
 bool BmpDigitRecognition::Save(char *path, char *name, bool override) {
     std::string filePath;
@@ -167,8 +166,8 @@ void BmpDigitRecognition::Terminate() {
     _stopTraining = true;
 }
 //============================================================================================================
-void BmpDigitRecognition::Train(char* path) {
-    _loss = INT_MAX;
+std::vector<double> BmpDigitRecognition::Train(char* path) {
+    _loss           = INT_MAX;
 
     WIN32_FIND_DATA tFD;
 
@@ -179,7 +178,7 @@ void BmpDigitRecognition::Train(char* path) {
     strcpy(tPath, path);
     strcat(tPath, "\\*.*");
 
-    HANDLE hFind = ::FindFirstFile(tPath, &tFD);
+    HANDLE hFind    = ::FindFirstFile(tPath, &tFD);
 
     if (hFind != INVALID_HANDLE_VALUE) {
         do {
@@ -190,8 +189,6 @@ void BmpDigitRecognition::Train(char* path) {
                 strcat(tFilePath, tFileName);
 
                 _fileName.emplace_back(std::pair<std::string, std::string>(tFilePath, tFileName));
-
-                //_trainingData.emplace_back(std::pair<std::string, cv::Mat>(tFileName, cv::imread(tFilePath, cv::IMREAD_GRAYSCALE)));
             }
         }
         while (::FindNextFile(hFind, &tFD));
@@ -203,16 +200,16 @@ void BmpDigitRecognition::Train(char* path) {
 
     std::vector<boost::thread>  vecThread;
 
-    int calSize = _trainingData.size() % 1000 == 0
-                  ? _trainingData.size() / 1000
-                  : _trainingData.size() / 1000 + 1;
+    int calSize = _trainingData.size() % 100 == 0
+                  ? _trainingData.size() / 100
+                  : _trainingData.size() / 100 + 1;
 
     vecThread.resize(calSize);
     for(int i = 0; i < calSize; i++) {
-        int begin   = i * 1000;
-        int end     = (i + 1) * 1000 - 1;
+        int begin   = i * 100;
+        int end     = (i + 1) * 100 - 1;
 
-        end = end > _trainingData.size() ? _trainingData.size() % 10 - 1 : end;
+        end = end > _trainingData.size() ? _trainingData.size() % 100 - 1 : end;
 
         vecThread[i] = boost::thread([this, begin, end]() {
             for(int i = begin; i <= end; i++) {
@@ -229,13 +226,23 @@ void BmpDigitRecognition::Train(char* path) {
     std::mt19937 g(rd());
     std::shuffle(_trainingData.begin(), _trainingData.end(), g);
 
-    _hMapFile       = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, TEXT("FileMapping"));
-    _pBuf           = (LPTSTR)MapViewOfFile(_hMapFile, FILE_MAP_ALL_ACCESS, 0, 0, sizeof( char[1024]));
+    _hMapFile           = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, TEXT("FileMapping"));
+    _pBuf               = (LPTSTR)MapViewOfFile(_hMapFile, FILE_MAP_ALL_ACCESS, 0, 0, sizeof( char[1024]));
 
-    _hEventRead     = OpenEvent(EVENT_ALL_ACCESS, FALSE, "EventCanReadMemory");
-    _hEventWrite    = OpenEvent(EVENT_ALL_ACCESS, FALSE, "EventCanWriteMemory");
+    _hEventRead         = OpenEvent(EVENT_ALL_ACCESS, FALSE, "EventCanReadMemory");
+    _hEventWrite        = OpenEvent(EVENT_ALL_ACCESS, FALSE, "EventCanWriteMemory");
 
-    _stopTraining   = false;
+    _stopTraining       = false;
+    _thresholdReached   = true;
+
+    _lossValue.clear();
+
+    if(_optimizer == OPTIMIZER::ADAM) {
+        EnableADAM();
+        InitIteration();
+    } else if(_optimizer == OPTIMIZER::NONE) {
+        DisableADAM();
+    }
 
     for (int i = 0; i < _loopCount; i++) {
 #ifndef MNIST_Recognition_Library_EXPORTS
@@ -247,23 +254,21 @@ void BmpDigitRecognition::Train(char* path) {
         ResetEvent(_hEventWrite);
         SetEvent(_hEventRead);
 #endif
-		if(_loss < _threshold) {
+		if(!_thresholdReached) {
             std::random_device trd;
             std::mt19937 tg(trd());
             std::shuffle(_trainingData.begin(), _trainingData.end(), tg);
+
+            _thresholdReached   = true;
         }
         
-        TrainHelper();
+        TrainHelperMultiThread();
         
         if(_stopTraining) {
             break;
         }
     }
 
-    plt::plot(_lossValue);
-    plt::show();
-
-    _lossValue.clear();
     _trainingData.clear();
     _fileName.clear();
 
@@ -271,22 +276,21 @@ void BmpDigitRecognition::Train(char* path) {
     CloseHandle(_hEventWrite);
     CloseHandle(_hEventRead);
     CloseHandle(_hMapFile);
+
+    return _lossValue;
 }
 //============================================================================================================
-void BmpDigitRecognition::TrainHelper() {
+void BmpDigitRecognition::TrainHelperMultiThread() {
     int     miniBatchSize   = GetMiniBatchSize();
     int     intervalNumber  =   _trainingData.size() % miniBatchSize == 0
                                 ? _trainingData.size() / miniBatchSize
                                 : _trainingData.size() / miniBatchSize + 1;
 
-
     for(int i = 0; i < intervalNumber; i++) {
 #ifndef MNIST_Recognition_Library_EXPORTS
         std::cout << "Batch : " << i + 1 << "\t";
 #else
-        std::stringstream ss;
-        ss << "Batch : " << std::setw(10) << std::left << i + 1;
-        _logFile = ss.str();
+
 #endif
         int begin   = i * miniBatchSize;
         int end     = (i + 1) * miniBatchSize - 1;
@@ -303,24 +307,33 @@ void BmpDigitRecognition::TrainHelper() {
             SetTargetTraining(k, targetMat);
         }
 
-        TrainingForwardPropagation();
+        ForwardPropagationMultiThread();
 
         double loss = GetLoss();
 
 #ifndef MNIST_Recognition_Library_EXPORTS
         std::cout << "Loss Value : " << GetLoss() << "\t";
 #else
-//        char temp[32];
-//        snprintf(temp, 32, "%.15f", loss);
-//        _logFile += "Loss Value : " + std::string(temp);
-//
-//        WaitForSingleObject(_hEventWrite, INFINITE);
-//        CopyMemory(_pBuf, _logFile.c_str(), strlen(_logFile.c_str()));
-//        ResetEvent(_hEventWrite);
-//        SetEvent(_hEventRead);
+        boost::thread msg([this, loss, i](){
+            std::stringstream ss;
+            ss << "Batch : " << std::setw(10) << std::left << i + 1;
+            _logFile = ss.str();
+
+            char temp[32];
+            snprintf(temp, 32, "%.15f", loss);
+            _logFile += "Loss Value : " + std::string(temp);
+
+            WaitForSingleObject(_hEventWrite, INFINITE);
+            CopyMemory(_pBuf, _logFile.c_str(), strlen(_logFile.c_str()));
+            ResetEvent(_hEventWrite);
+            SetEvent(_hEventRead);
+        });
+
 #endif
-        if(loss < _threshold || _stopTraining) {
+        if(_stopTraining) {
             break;
+        } else if(loss > _threshold) {
+            _thresholdReached   = false;
         }
 
         _lossValue.emplace_back(std::move(loss));
@@ -343,12 +356,6 @@ double BmpDigitRecognition::Test(char *path) {
     int tNumberOfValidData = 0;
 
     double tCompare;
-
-//    _hMapFile       = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, TEXT("FileMapping"));
-//    _pBuf           = (LPTSTR)MapViewOfFile(_hMapFile, FILE_MAP_ALL_ACCESS, 0, 0, sizeof( char[1024]));
-//
-//    _hEventRead     = OpenEvent(EVENT_ALL_ACCESS, FALSE, "EventCanReadMemory");
-//    _hEventWrite    = OpenEvent(EVENT_ALL_ACCESS, FALSE, "EventCanWriteMemory");
 
     strcpy(tPath, path);
     strcat(tPath, "\\*.*");
@@ -380,17 +387,7 @@ double BmpDigitRecognition::Test(char *path) {
                         tOutputResult = i;
                     }
                 }
-#ifndef MNIST_Recognition_Library_EXPORTS
-                std::cout << "Target : " << tFileName[0] << " Output : " << tOutputResult << std::endl;
-#else
-//                _logFile = std::string(tFileName) + " Target : ";
-//                _logFile.push_back(tFileName[0]);
-//                _logFile += " Output : " + std::to_string(tOutputResult);
-//                WaitForSingleObject(_hEventWrite, 1);
-//                ResetEvent(_hEventWrite);
-//                CopyMemory(_pBuf, _logFile.c_str(), strlen(_logFile.c_str()));
-//                SetEvent(_hEventRead);
-#endif
+
                 if (std::atoi(&tFileName[0]) == tOutputResult) {
                     tNumberOfValidData++;
                 }
@@ -399,15 +396,8 @@ double BmpDigitRecognition::Test(char *path) {
             }
         } while (::FindNextFile(hFind, &tFD));
     }
-#ifndef MNIST_Recognition_Library_EXPORTS
-    std::cout << "Accuracy : " << tNumberOfValidData / (float) tTotalNumberOfData << std::endl;
-#endif
-    ::FindClose(hFind);
 
-//    UnmapViewOfFile(_pBuf);
-//    CloseHandle(_hEventWrite);
-//    CloseHandle(_hEventRead);
-//    CloseHandle(_hMapFile);
+    ::FindClose(hFind);
 
     return tNumberOfValidData / (float) tTotalNumberOfData;
 }
@@ -436,5 +426,14 @@ int BmpDigitRecognition::SingleTest(char *path) {
     }
 
     return tOutputResult;
+}
+//============================================================================================================
+void BmpDigitRecognition::SetOptimizer(OPTIMIZER optimizer) {
+    _optimizer      = optimizer;
+}
+//============================================================================================================
+void BmpDigitRecognition::SetBeta1Beta2(double beta1, double beta2) {
+    SetBeta1(beta1);
+    SetBeta2(beta2);
 }
 //============================================================================================================

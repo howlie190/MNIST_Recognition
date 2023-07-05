@@ -15,6 +15,7 @@ bool IsPBmpDigitRecognitionEmpty(void) {
 //============================================================================================================
 void InitBmpDigitRecognitionNeuralNet(std::vector<int> layerNeuralNumber) {
     pBmpDigitRecognition->InitNeuralNet(layerNeuralNumber);
+    pBmpDigitRecognition->InitADAM();
 }
 //============================================================================================================
 void SetBmpDigitRecognition(int         activationFunction,
@@ -27,7 +28,10 @@ void SetBmpDigitRecognition(int         activationFunction,
                             int         initWeight,
                             double      mean,
                             double      standardDeviation,
-                            int         miniBatchSize) {
+                            int         miniBatchSize,
+                            int         optimizer,
+                            double      beta1,
+                            double      beta2) {
     pBmpDigitRecognition->SetActivationFunction(ACTIVATION_FUNCTION::SIGMOID);
     pBmpDigitRecognition->SetOutputActivationFunction((ACTIVATION_FUNCTION)outputFunction);
     pBmpDigitRecognition->SetLossFunction((LOSS_FUNCTION)lossFunction);
@@ -62,14 +66,18 @@ void SetBmpDigitRecognition(int         activationFunction,
     } else if((ACTIVATION_FUNCTION)activationFunction == ACTIVATION_FUNCTION::RELU) {
         pBmpDigitRecognition->SetDerivativeFunction(DERIVATIVE_FUNCTION::RELU);
     }
+
+    pBmpDigitRecognition->InitADAM();
+    pBmpDigitRecognition->SetOptimizer((OPTIMIZER)optimizer);
+    pBmpDigitRecognition->SetBeta1Beta2(beta1, beta2);
 }
 //============================================================================================================
 void SetBmpDigitRecognitionModelPath(char* path) {
     pBmpDigitRecognition->Load(path);
 }
 //============================================================================================================
-void TrainBmpDigitRecognition(char* path, HANDLE hStdIn, HANDLE hStdOut) {
-    pBmpDigitRecognition->Train(path);
+std::vector<double> TrainBmpDigitRecognition(char* path, HANDLE hStdIn, HANDLE hStdOut) {
+    return pBmpDigitRecognition->Train(path);
 }
 //============================================================================================================
 bool SaveBmpDigitRecognition(char* path, char* name, bool override) {

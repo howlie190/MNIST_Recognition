@@ -4,6 +4,7 @@
 
 #include "Define.h"
 #include <mutex>
+#include <iostream>
 
 std::mutex mtxCalVecMatProduct;
 
@@ -147,22 +148,15 @@ void CalMatAvg(const cv::Mat& source, int number, cv::Mat* destination) {
 void CalVecMatProduct(const std::vector<std::vector<cv::Mat>>& vec1,
                       const std::vector<std::vector<cv::Mat>>& vec2,
                       std::vector<cv::Mat>* destination,
-                      int idx,
-                      int idx1,
-                      int idx2) {
-    destination->at(idx) = vec1[idx][idx1] * std::move(vec2[idx][idx2].t());
-}
-//============================================================================================================
-void CalVecMatProduct(const std::vector<std::vector<cv::Mat>>& vec1,
-                      const std::vector<std::vector<cv::Mat>>& vec2,
-                      std::vector<cv::Mat>* destination,
                       int begin,
                       int end,
                       int idx1,
                       int idx2) {
     for(int i = begin; i <= end || i < vec1.size(); i++) {
+        cv::Mat temp = vec1[i][idx1] * std::move(vec2[i][idx2].t());
+
         std::unique_lock<std::mutex> lock(mtxCalVecMatProduct);
-        destination->at(i) = vec1[i][idx1] * std::move(vec2[i][idx2].t());
+        destination->at(i) = temp;
         lock.unlock();
     }
 }
@@ -176,5 +170,15 @@ void CalWeightLayerProduct(const std::vector<cv::Mat>& weight,
     for(int i = begin; i <= end || i < layer->size(); i++) {
         layer->at(i).at(idx1) = weight[idx1].t() * layer->at(i).at(idx2);
     }
+}
+//============================================================================================================
+void ShowMat(cv::Mat mat) {
+    for(int i = 0; i < mat.rows; i++) {
+        for(int j = 0; j < mat.cols; j++) {
+            std::cout << mat.at<float>(i, j) << " ";
+        }
+        std::cout << std::endl;
+    }
+    getchar();
 }
 //============================================================================================================

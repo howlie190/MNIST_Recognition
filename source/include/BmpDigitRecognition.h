@@ -21,20 +21,23 @@ extern "C" {
 
 class BmpDigitRecognition : public MLP {
 public:
-    double      Test(char*) override;
+    double              Test(char*) override;
 
-    int         SingleTest(char*);
+    int                 SingleTest(char*);
 
-    bool        Save(char*, char*, bool) override;
-    bool        Load(char*) override;
+    bool                Save(char*, char*, bool) override;
+    bool                Load(char*) override;
 
-    void        Train(char*) override;
-    void        SetInputTraining(const int, const cv::Mat&) override;
-    void        SetInput(const cv::Mat&) override;
-    void        SetThreshold(const double);
-    void        SetLoopCount(const int);
-    void        TrainHelper();
-    void        Terminate();
+    std::vector<double> Train(char*) override;
+    void                SetInputTraining(const int, const cv::Mat&) override;
+    void                SetInput(const cv::Mat&) override;
+    void                SetThreshold(const double);
+    void                SetLoopCount(const int);
+    void                TrainHelperMultiThread();
+    void                TrainHelperSingleThread();
+    void                Terminate();
+    void                SetOptimizer(OPTIMIZER);
+    void                SetBeta1Beta2(double, double);
 private:
     std::vector<std::pair<std::string, cv::Mat>>        _trainingData;
     std::vector<std::pair<std::string, cv::Mat>>        _testingData;
@@ -49,6 +52,8 @@ private:
     int                                                 _loopCount;
 
     bool                                                _stopTraining;
+    bool                                                _thresholdReached;
+    OPTIMIZER                                           _optimizer;
 
     std::string                                         _logFile;
 

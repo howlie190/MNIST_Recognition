@@ -17,27 +17,30 @@ BmpDigitRecognition *pBmpDigitRecognition = nullptr;
 extern "C" {
 #endif
 
-LIBRARY_API void        CreateBmpDigitRecognition(void);
-LIBRARY_API void        DeleteBmpDigitRecognition(void);
-LIBRARY_API bool        IsPBmpDigitRecognitionEmpty(void);
-LIBRARY_API void        InitBmpDigitRecognitionNeuralNet(std::vector<int> layerNeuralNumber);
-LIBRARY_API void        SetBmpDigitRecognition( int,
-                                                int,
-                                                int,
-                                                double,
-                                                double,
-                                                double,
-                                                int,
-                                                int,
-                                                double,
-                                                double,
-                                                int);
-LIBRARY_API void        SetBmpDigitRecognitionModelPath(char *path);
-LIBRARY_API void        TrainBmpDigitRecognition(char *path, HANDLE stdIn, HANDLE stdOut);
-LIBRARY_API bool        SaveBmpDigitRecognition(char* path, char* name, bool override);
-LIBRARY_API double      TestBmpDigitRecognition(char*);
-LIBRARY_API int         SingleTestBmpDigitRecognition(char *path);
-LIBRARY_API void        TerminateTrainBmpDigitRecognition();
+LIBRARY_API void                CreateBmpDigitRecognition(void);
+LIBRARY_API void                DeleteBmpDigitRecognition(void);
+LIBRARY_API bool                IsPBmpDigitRecognitionEmpty(void);
+LIBRARY_API void                InitBmpDigitRecognitionNeuralNet(std::vector<int> layerNeuralNumber);
+LIBRARY_API void                SetBmpDigitRecognition( int,
+                                                        int,
+                                                        int,
+                                                        double,
+                                                        double,
+                                                        double,
+                                                        int,
+                                                        int,
+                                                        double,
+                                                        double,
+                                                        int,
+                                                        int,
+                                                        double,
+                                                        double);
+LIBRARY_API void                SetBmpDigitRecognitionModelPath(char *path);
+LIBRARY_API std::vector<double> TrainBmpDigitRecognition(char *path, HANDLE stdIn, HANDLE stdOut);
+LIBRARY_API bool                SaveBmpDigitRecognition(char* path, char* name, bool override);
+LIBRARY_API double              TestBmpDigitRecognition(char*);
+LIBRARY_API int                 SingleTestBmpDigitRecognition(char *path);
+LIBRARY_API void                TerminateTrainBmpDigitRecognition();
 
 #ifdef __cplusplus
 }

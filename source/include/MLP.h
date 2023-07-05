@@ -25,41 +25,44 @@ public:
     MLP();
     ~MLP();
 
-    void                    InitNeuralNet(std::vector<int>);
-    void                    InitWeights(DISTRIBUTION, double, double);
-    void                    InitBias(cv::Scalar&&);
-    void                    SetActivationFunction(ACTIVATION_FUNCTION);
-    void                    SetOutputActivationFunction(ACTIVATION_FUNCTION);
-    void                    SetLossFunction(LOSS_FUNCTION);
-    void                    SetDerivativeOutputFunction(DERIVATIVE_FUNCTION);
-    void                    SetDerivativeFunction(DERIVATIVE_FUNCTION);
-    void                    SetLearningRate(double);
-    void                    SetLambda(double);
-    void                    SetTargetTraining(int, const cv::Mat&);
-    void                    SetTarget(const cv::Mat&);
-    void                    SetMiniBatchSize(size_t);
+    void                        InitNeuralNet(std::vector<int>);
+    void                        InitADAM();
+    void                        InitWeights(DISTRIBUTION, double, double);
+    void                        InitBias(cv::Scalar&&);
+    void                        SetActivationFunction(ACTIVATION_FUNCTION);
+    void                        SetOutputActivationFunction(ACTIVATION_FUNCTION);
+    void                        SetLossFunction(LOSS_FUNCTION);
+    void                        SetDerivativeOutputFunction(DERIVATIVE_FUNCTION);
+    void                        SetDerivativeFunction(DERIVATIVE_FUNCTION);
+    void                        SetLearningRate(double);
+    void                        SetLambda(double);
+    void                        SetTargetTraining(int, const cv::Mat&);
+    void                        SetTarget(const cv::Mat&);
+    void                        SetMiniBatchSize(size_t);
 
-    double                  GetLoss();
+    double                      GetLoss();
 
-    virtual void            Train(char*) = 0;
-    virtual void            SetInputTraining(const int, const cv::Mat&) = 0;
-    virtual void            SetInput(const cv::Mat&) = 0;
+    virtual std::vector<double> Train(char*) = 0;
+    virtual void                SetInputTraining(const int, const cv::Mat&) = 0;
+    virtual void                SetInput(const cv::Mat&) = 0;
 
-    virtual double          Test(char*) = 0;
+    virtual double              Test(char*) = 0;
 
-    virtual bool            Save(char*, char*, bool) = 0;
-    virtual bool            Load(char*) = 0;
+    virtual bool                Save(char*, char*, bool) = 0;
+    virtual bool                Load(char*) = 0;
 
 protected:
     void                    InitNeuralNetHelper(std::vector<cv::Mat>&, std::vector<cv::Mat>&);
     void                    InitNeuralLayerHelper(std::vector<std::vector<cv::Mat>>&);
     void                    InitNeuralLayerHelper(std::vector<cv::Mat>&);
     void                    InitWeightHelper(DISTRIBUTION, cv::Mat&, double, double);
-    void                    TrainingForwardPropagation();
-    void                    TrainingForwardPropagationHelper(const int);
+    void                    ForwardPropagationMultiThread();
+    void                    ForwardPropagationMultiThreadHelper(const int);
     void                    ForwardPropagation();
     void                    BackPropagation();
-    void                    UpdateWeights();
+    void                    UpdateWeightsMultiThread();
+    void                    UpdateWeightsMultiThreadWithADAM();
+    void                    UpdateWeightsSingleThread();
     void                    SetInputLayerTraining(const int, const cv::Mat&);
     void                    SetInputLayer(const cv::Mat&);
     void                    LoadLayerNeuralNumber(const std::vector<int>&);
@@ -71,6 +74,12 @@ protected:
     void                    CalWeights(const int, const std::vector<std::vector<cv::Mat>>&, cv::Mat&);
     void                    CalBias(const int, const std::vector<std::vector<cv::Mat>>&, cv::Mat&);
     void                    CalLayer(const int, std::vector<std::vector<cv::Mat>>*);
+    void                    EnableADAM();
+    void                    DisableADAM();
+    void                    InitIteration();
+    void                    IncrementIteration();
+    void                    SetBeta1(double);
+    void                    SetBeta2(double);
 
     double                  L2Regression(const std::vector<cv::Mat>&);
 
@@ -95,6 +104,10 @@ private:
     std::vector<double>                 _lossThreading;
     std::vector<cv::Mat>                _targetThreading;
     std::vector<cv::Mat>                _outputThreading;
+    std::vector<cv::Mat>                _mtWeight;
+    std::vector<cv::Mat>                _vtWeight;
+    std::vector<cv::Mat>                _mtBias;
+    std::vector<cv::Mat>                _vtBias;
 
     cv::Mat                             _target;
     cv::Mat                             _output;
@@ -107,9 +120,14 @@ private:
 
     double                              _learningRate;
     double                              _lambda;
-    double                              _loss;
+    double                              _beta1;
+    double                              _beta2;
+    const double                        _epsilon = 1e-8;
 
     int                                 _miniBatchSize;
+    int                                 _iteration;
+
+    bool                                _enableADAM;
 };
 
 #ifdef __cplusplus

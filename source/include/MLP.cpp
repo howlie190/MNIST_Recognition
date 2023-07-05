@@ -224,9 +224,9 @@ void MLP::ForwardPropagation() {
     _output = _pOutputActivationFunction(_layer[_layer.size() - 1]);
 }
 //============================================================================================================
-void MLP::TrainingForwardPropagation() {
+void MLP::ForwardPropagationMultiThread() {
     for(int i = 0; i < _miniBatchSize; i++) {
-        _vecThread[i]   = boost::thread(&MLP::TrainingForwardPropagationHelper, this, i);
+        _vecThread[i]   = boost::thread(&MLP::ForwardPropagationMultiThreadHelper, this, i);
     }
 
     for(int i = 0; i < _miniBatchSize; i++) {
@@ -234,7 +234,7 @@ void MLP::TrainingForwardPropagation() {
     }
 }
 //============================================================================================================
-void MLP::TrainingForwardPropagationHelper(const int idx) {
+void MLP::ForwardPropagationMultiThreadHelper(const int idx) {
     for (int i = 0; i < _layerNeuralNumber.size() - 1; i++) {
         cv::Mat product = _weights[i] * _layerThreading[idx][i] + _bias[i];
 
@@ -251,10 +251,15 @@ void MLP::TrainingForwardPropagationHelper(const int idx) {
 }
 //============================================================================================================
 void MLP::BackPropagation() {
-    UpdateWeights();
+    if(_enableADAM) {
+        UpdateWeightsMultiThreadWithADAM();
+        IncrementIteration();
+    } else {
+        UpdateWeightsMultiThread();
+    }
 }
 //============================================================================================================
-void MLP::UpdateWeights() {
+void MLP::UpdateWeightsMultiThread() {
     std::vector<std::vector<cv::Mat>>   layer;
     std::vector<cv::Mat>                weights;
     std::vector<cv::Mat>                bias;
@@ -269,12 +274,17 @@ void MLP::UpdateWeights() {
             DerivativeFunction(i + 1, layer);
         }
 
-        CalWeights(i, layer, weights[i]);
-        CalBias(i + 1, layer, bias[i]);
-        CalLayer(i, &layer);
+        boost::thread weightThread(&MLP::CalWeights, this, i, layer, weights[i]);
+        boost::thread biasThread(&MLP::CalBias, this, i + 1, layer, bias[i]);
+        boost::thread layerThread(&MLP::CalLayer, this, i, &layer);
+
+        weightThread.join();
+        biasThread.join();
 
         _weights[i] -= (_learningRate * weights[i]);
         _bias[i] -= (_learningRate * bias[i]);
+
+        layerThread.join();
     }
 }
 //============================================================================================================
@@ -510,5 +520,132 @@ int MLP::GetNumberOfOutputLayerNodes() {
 //============================================================================================================
 int MLP::GetMiniBatchSize() {
     return _miniBatchSize;
+}
+//============================================================================================================
+void MLP::UpdateWeightsSingleThread() {
+    std::vector<cv::Mat> layer, weights, bias;
+    InitNeuralNetHelper(layer, weights);
+    InitNeuralLayerHelper(layer);
+
+    for (int i = layer.size() - 2; i >= 0; i--) {
+        if (i == layer.size() - 2) {
+            _pDerivativeOutputFunction(_output, _target, &layer[i + 1]);
+        } else {
+            cv::Mat derivative = cv::Mat::zeros(layer[i + 1].rows, 1, CV_32FC1);
+            _pDerivativeFunction(_layer[i + 1], &derivative);
+            layer[i + 1] = derivative.mul(layer[i + 1]);
+        }
+
+        weights[i] = layer[i + 1] * _layer[i].t() + DerivativeL2Regression(_weights[i]);
+        bias[i] = layer[i + 1];
+        layer[i] = _weights[i].t() * layer[i + 1];
+
+        _weights[i] -= (_learningRate * weights[i]);
+        _bias[i] -= (_learningRate * bias[i]);
+    }
+}
+//============================================================================================================
+void MLP::InitADAM() {
+    _beta1       = 0.8;
+    _beta2       = 0.9;
+
+    _mtWeight.clear();
+    _vtWeight.clear();
+    _mtBias.clear();
+    _vtBias.clear();
+
+    _mtWeight.resize(_layerNeuralNumber.size() - 1);
+    _vtWeight.resize(_layerNeuralNumber.size() - 1);
+    _mtBias.resize(_layerNeuralNumber.size() - 1);
+    _vtBias.resize(_layerNeuralNumber.size() - 1);
+
+    for(int i = 0; i < _layerNeuralNumber.size() - 1; i++) {
+        _mtWeight[i] = cv::Mat::zeros(_layerNeuralNumber[i + 1], _layerNeuralNumber[i], CV_32FC1);
+        _vtWeight[i] = cv::Mat::zeros(_layerNeuralNumber[i + 1], _layerNeuralNumber[i], CV_32FC1);
+        _mtBias[i] = cv::Mat::zeros(_layerNeuralNumber[i + 1], 1, CV_32FC1);
+        _vtBias[i] = cv::Mat::zeros(_layerNeuralNumber[i + 1], 1, CV_32FC1);
+    }
+}
+//============================================================================================================
+void MLP::EnableADAM() {
+    _enableADAM     = true;
+}
+//============================================================================================================
+void MLP::DisableADAM() {
+    _enableADAM     = false;
+}
+//============================================================================================================
+void MLP::UpdateWeightsMultiThreadWithADAM() {
+    std::vector<std::vector<cv::Mat>>   layer;
+    std::vector<cv::Mat>                weights;
+    std::vector<cv::Mat>                bias;
+
+    InitNeuralNetHelper(weights, bias);
+    InitNeuralLayerHelper(layer);
+
+    for (int i = _layerNeuralNumber.size() - 2; i >= 0; i--) {
+        if (i == _layerNeuralNumber.size() - 2) {
+            DerivativeOutputFunction(layer);
+        } else {
+            DerivativeFunction(i + 1, layer);
+        }
+
+        boost::thread weightThread(&MLP::CalWeights, this, i, layer, weights[i]);
+        boost::thread biasThread(&MLP::CalBias, this, i + 1, layer, bias[i]);
+        boost::thread layerThread(&MLP::CalLayer, this, i, &layer);
+
+        weightThread.join();
+        biasThread.join();
+
+        cv::Mat squared;
+        cv::pow(weights[i], 2, squared);
+
+        _mtWeight[i] = (_beta1 * _mtWeight[i]) + (((double)1 - _beta1) * weights[i]);
+        _vtWeight[i] = (_beta2 * _vtWeight[i]) + (((double)1 - _beta2) * squared);
+
+        cv::pow(bias[i], 2, squared);
+
+        _mtBias[i] = (_beta1 * _mtBias[i]) + (((double)1 - _beta1) * bias[i]);
+        _vtBias[i] = (_beta2 * _vtBias[i]) + (((double)1 - _beta2) * squared);
+
+        _mtWeight[i] = _mtWeight[i] / (1 - std::pow(_beta1, _iteration));
+        _vtWeight[i] = _vtWeight[i] / (1 - std::pow(_beta2, _iteration));
+
+        _mtBias[i] = _mtBias[i] / (1 - std::pow(_beta1, _iteration));
+        _vtBias[i] = _vtBias[i] / (1 - std::pow(_beta2, _iteration));
+
+        cv::Mat temp;
+        cv::Mat result;
+
+        cv::sqrt(_vtWeight[i], temp);
+        temp += _epsilon;
+        cv::divide(_mtWeight[i], temp, result);
+
+        _weights[i] -= (_learningRate * result);
+
+        cv::sqrt(_vtBias[i], temp);
+        temp += _epsilon;
+        cv::divide(_mtBias[i], temp, result);
+
+        _bias[i] -= (_learningRate * result);
+
+        layerThread.join();
+    }
+}
+//============================================================================================================
+void MLP::InitIteration() {
+    _iteration      = 1;
+}
+//============================================================================================================
+void MLP::IncrementIteration() {
+    _iteration++;
+}
+//============================================================================================================
+void MLP::SetBeta1(double beta1) {
+    _beta1          = beta1;
+}
+//============================================================================================================
+void MLP::SetBeta2(double beta2) {
+    _beta2          = beta2;
 }
 //============================================================================================================
