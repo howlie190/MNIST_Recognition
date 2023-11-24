@@ -32,12 +32,13 @@ void SetBmpDigitRecognition(int     activation_function,
                             int     batch_size,
                             int     optimizer,
                             double  beta1,
-                            double  beta2) {
+                            double  beta2,
+                            int     thread) {
     pBmpDigitRecognition->InitTrainNeuralNet(batch_size);
     pBmpDigitRecognition->SetFunctions(static_cast<ACTIVATION_FUNCTION>(activation_function),
                                        static_cast<OUTPUT_FUNCTION>(output_function),
                                        static_cast<LOSS_FUNCTION>(loss_function));
-    pBmpDigitRecognition->SetParameter(32,
+    pBmpDigitRecognition->SetParameter(thread,
                                        learning_rate,
                                        lambda,
                                        static_cast<Optimizer::TYPE>(optimizer),

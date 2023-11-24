@@ -32,7 +32,8 @@ LIBRARY_API void                SetBmpDigitRecognition( int,
                                                         int,
                                                         int,
                                                         double,
-                                                        double);
+                                                        double,
+                                                        int);
 LIBRARY_API void                SetBmpDigitRecognitionModelPath(char *path);
 LIBRARY_API std::vector<double> TrainBmpDigitRecognition(const char *path, HANDLE stdIn, HANDLE stdOut);
 LIBRARY_API bool                SaveBmpDigitRecognition(char* path, char* name, bool override);

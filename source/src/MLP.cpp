@@ -388,7 +388,7 @@ void MLP::DerivativeCalWeight(const size_t &idx) {
 
         vec_thread.emplace_back(std::make_unique<boost::thread>(
                 [this, &temp_mat, begin, end, capture0 = idx + 1, idx] {
-                    CalVecMatProduct(temp_mat, begin, end, capture0, idx);
+                    CalVecLayerProduct(temp_mat, begin, end, capture0, idx);
                 }));
     }
 
@@ -426,7 +426,7 @@ void MLP::DerivativeCalWeight(const size_t &idx) {
     update_layer_weight_values[idx] += DerivativeL2Regression(mlp_layer_weight_values[idx]);
 }
 //============================================================================================================
-void MLP::CalVecMatProduct(std::vector<cv::Mat> &temp, const size_t &begin, const size_t &end, const size_t &idx1, const size_t &idx2) {
+void MLP::CalVecLayerProduct(std::vector<cv::Mat> &temp, const size_t &begin, const size_t &end, const size_t &idx1, const size_t &idx2) {
     for(size_t i = begin; i <= end; i++) {
         std::unique_lock<std::mutex>    lock(mtx_cal_vec_mat_product);
         cv::Mat     product = update_layer_values[i][idx1] * mlp_layer_values[i][idx2].t();

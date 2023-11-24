@@ -45,8 +45,13 @@ cv::Mat Machine_Learning_Math::ReLU(const cv::Mat &input) {
 //============================================================================================================
 cv::Mat Machine_Learning_Math::Softmax(const cv::Mat &input) {
     cv::Mat exp;
+    double  min, max;
 
-    cv::exp(input, exp);
+    cv::minMaxLoc(input, &min, &max);
+    cv::Mat adjusted;
+    cv::subtract(input, max, adjusted);
+
+    cv::exp(adjusted, exp);
 
     double sum = cv::sum(exp)[0];
     cv::Mat output = exp / sum;

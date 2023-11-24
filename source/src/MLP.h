@@ -182,7 +182,7 @@ private:
     void                                        DerivativeCalLayer(const size_t&);
     cv::Mat                                     DerivativeL2Regression(const cv::Mat&) const;
 
-    void                                        CalVecMatProduct(std::vector<cv::Mat>&, const size_t&, const size_t&, const size_t&, const size_t&);
+    void                                        CalVecLayerProduct(std::vector<cv::Mat>&, const size_t&, const size_t&, const size_t&, const size_t&);
     void                                        CalVecMatSum(const std::vector<cv::Mat>&, cv::Mat*, const size_t&, const size_t&);
     void                                        CalMatAverage(const cv::Mat&, cv::Mat*, const size_t&);
     void                                        CalWeightLayerProduct(const size_t&, const size_t&, const size_t&, const size_t&);
