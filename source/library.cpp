@@ -1,75 +1,83 @@
 #include "library.h"
 
-void CreateBmpDigitRecognition(void) {
-    pBmpDigitRecognition = new BmpDigitRecognition();
-}
 
+void CreateBmpDigitRecognition(void) {
+    pBmpDigitRecognition    = new Image_MLP();
+}
+//============================================================================================================
 void DeleteBmpDigitRecognition(void) {
     delete pBmpDigitRecognition;
-    pBmpDigitRecognition = nullptr;
+    pBmpDigitRecognition    = nullptr;
 }
-
+//============================================================================================================
 bool IsPBmpDigitRecognitionEmpty(void) {
-    return pBmpDigitRecognition == nullptr ? true : false;
+    return pBmpDigitRecognition == nullptr;
 }
-
-void InitBmpDigitRecognitionNeuralNet(std::vector<int> layerNeuralNumber) {
-    pBmpDigitRecognition->InitNeuralNet(layerNeuralNumber);
+//============================================================================================================
+void InitBmpDigitRecognitionNeuralNet(std::vector<int> &layerNeuralNumber) {
+    pBmpDigitRecognition->Init();
+    pBmpDigitRecognition->InitNeuralNet(std::move(layerNeuralNumber));
 }
+//============================================================================================================
+void SetBmpDigitRecognition(int     activation_function,
+                            int     output_function,
+                            int     loss_function,
+                            double  learning_rate,
+                            double  lambda,
+                            double  threshold,
+                            int     epoch,
+                            int     init_weight_type,
+                            double  init_weight_mean,
+                            double  init_weight_standard_deviation,
+                            int     batch_size,
+                            int     optimizer,
+                            double  beta1,
+                            double  beta2) {
+    pBmpDigitRecognition->InitTrainNeuralNet(batch_size);
+    pBmpDigitRecognition->SetFunctions(static_cast<ACTIVATION_FUNCTION>(activation_function),
+                                       static_cast<OUTPUT_FUNCTION>(output_function),
+                                       static_cast<LOSS_FUNCTION>(loss_function));
+    pBmpDigitRecognition->SetParameter(32,
+                                       learning_rate,
+                                       lambda,
+                                       static_cast<Optimizer::TYPE>(optimizer),
+                                       beta1,
+                                       beta2);
+    if(init_weight_type != 2) {
+        pBmpDigitRecognition->SetInitWeightValue(static_cast<DISTRIBUTION>(init_weight_type),
+                                                 init_weight_mean,
+                                                 init_weight_standard_deviation);
+        pBmpDigitRecognition->SetInitBiasValue(cv::Scalar(0.0));
+    }
 
-void SetBmpDigitRecognition(int         activationFunction,
-                            int         outputFunction,
-                            int         lossFunction,
-                            double      learningRate,
-                            double      lambda,
-                            double      threshold,
-                            int         iteration,
-                            int         initWeight,
-                            double      mean,
-                            double      standardDeviation) {
-    pBmpDigitRecognition->SetActivationFunction(ACTIVATION_FUNCTION::SIGMOID);
-    pBmpDigitRecognition->SetOutputActivationFunction((ACTIVATION_FUNCTION)outputFunction);
-    pBmpDigitRecognition->SetLossFunction((LOSS_FUNCTION)lossFunction);
-    pBmpDigitRecognition->SetLearningRate(learningRate);
-    pBmpDigitRecognition->SetLambda(lambda);
+    pBmpDigitRecognition->SetEpoch(epoch);
     pBmpDigitRecognition->SetThreshold(threshold);
-    pBmpDigitRecognition->SetLoopCount(iteration);
-
-    if(initWeight != 2) {
-        pBmpDigitRecognition->InitWeights((DISTRIBUTION)initWeight, mean, standardDeviation);
-        pBmpDigitRecognition->InitBias(cv::Scalar(0.0));
-    }
-
-    if((LOSS_FUNCTION)lossFunction == LOSS_FUNCTION::MEAN_SQUARED_ERROR && (ACTIVATION_FUNCTION)outputFunction == ACTIVATION_FUNCTION::SOFTMAX) {
-        pBmpDigitRecognition->SetDerivativeOutputFunction(DERIVATIVE_FUNCTION::SOFTMAX_MSE);
-    }
-
-    if((ACTIVATION_FUNCTION)activationFunction == ACTIVATION_FUNCTION::SIGMOID) {
-        pBmpDigitRecognition->SetDerivativeFunction(DERIVATIVE_FUNCTION::SIGMOID);
-    }
 }
-
-void SetBmpDigitRecognitionModelPath(char* path) {
-    pBmpDigitRecognition->Load(path);
+//============================================================================================================
+void SetBmpDigitRecognitionModelPath(char *path) {
+    pBmpDigitRecognition->LoadModel(path);
 }
-
-void TrainBmpDigitRecognition(char* path, HANDLE hStdIn, HANDLE hStdOut) {
-    pBmpDigitRecognition->SetStdInputOutput(hStdIn, hStdOut);
-    pBmpDigitRecognition->Train(path);
+//============================================================================================================
+std::vector<double> TrainBmpDigitRecognition(const char *path, HANDLE stdIn, HANDLE stdOut) {
+    pBmpDigitRecognition->SetTrainDataSetPath(path);
+    return pBmpDigitRecognition->Train();
 }
-
-bool SaveBmpDigitRecognition(char* path, char* name, bool override) {
-    return pBmpDigitRecognition->Save(path, name, override);
+//============================================================================================================
+bool SaveBmpDigitRecognition(char *path, char *name, bool override) {
+    return pBmpDigitRecognition->SaveModel(path, name, override);
 }
-
-double TestBmpDigitRecognition(char* path) {
-    return pBmpDigitRecognition->Test(path);
+//============================================================================================================
+double TestBmpDigitRecognition(const char *path) {
+    pBmpDigitRecognition->SetTestDataSetPath(path);
+    return pBmpDigitRecognition->Test();
 }
-
-int SingleTestBmpDigitRecognition(char *path) {
-    return pBmpDigitRecognition->SingleTest(path);
+//============================================================================================================
+int SingleTestBmpDigitRecognition(const char *path) {
+    pBmpDigitRecognition->SetPredictDataPath(path);
+    return pBmpDigitRecognition->Predict();
 }
-
+//============================================================================================================
 void TerminateTrainBmpDigitRecognition() {
     pBmpDigitRecognition->Terminate();
 }
+//============================================================================================================
