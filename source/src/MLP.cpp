@@ -11,6 +11,21 @@ MLP::~MLP() {
         if(thd && thd->joinable())
             thd->join();
     }
+
+    for(const auto& thd : vec_weight_thread) {
+        if(thd && thd->joinable())
+            thd->join();
+    }
+
+    for(const auto& thd : vec_bias_thread) {
+        if(thd && thd->joinable())
+            thd->join();
+    }
+
+    for(const auto& thd : vec_layer_thread) {
+        if(thd && thd->joinable())
+            thd->join();
+    }
 }
 //============================================================================================================
 void MLP::Init() {
@@ -29,6 +44,24 @@ void MLP::Init() {
 
     vec_thread.clear();
 
+    for(auto & t : vec_weight_thread) {
+        t->interrupt();
+    }
+
+    vec_weight_thread.clear();
+
+    for(auto & t : vec_bias_thread) {
+        t->interrupt();
+    }
+
+    vec_bias_thread.clear();
+
+    for(auto & t : vec_layer_thread) {
+        t->interrupt();
+    }
+
+    vec_layer_thread.clear();
+
     output_loss_value.clear();
     label_value.clear();
     output_value.clear();
@@ -39,8 +72,6 @@ void MLP::Init() {
     section_size                    = 0;
 
     lambda                          = 1e-8;
-
-    enable_optimizer                = false;
 
     optimizer                       = nullptr;
 
@@ -199,13 +230,15 @@ void MLP::SetDerivativeOutputFunction(DERIVATIVE_OUTPUT_FUNCTION dof) {
 }
 //============================================================================================================
 void MLP::ForwardBatch() {
+    double  L2 = Machine_Learning_Math::L2Regression(mlp_layer_weight_values, lambda);
+
     for(int i = 0; i < thread_size; i++) {
         size_t  begin   = i * section_size;
         size_t  end     = (i + 1) * section_size - 1;
 
         end         = end > batch_size ? batch_size - 1 : end;
 
-        vec_thread.emplace_back(std::make_unique<boost::thread>(&MLP::ForwardBatchPropagation, this, begin, end));
+        vec_thread.emplace_back(std::make_unique<boost::thread>(&MLP::ForwardBatchPropagation, this, begin, end, L2));
     }
 
     for(const auto &thd : vec_thread) {
@@ -217,13 +250,17 @@ void MLP::ForwardBatch() {
 }
 //============================================================================================================
 void MLP::SetFunctions(ACTIVATION_FUNCTION af, OUTPUT_FUNCTION of, LOSS_FUNCTION lf) {
-    SetActivationFunction(af);
-    SetOutputFunction(of);
-    SetLossFunction(lf);
+    activation_function         = af;
+    output_function             = of;
+    loss_function               = lf;
 
-    SetDerivativeActivationFunction(static_cast<DERIVATIVE_ACTIVATION_FUNCTION>(af));
+    SetActivationFunction(activation_function);
+    SetOutputFunction(output_function);
+    SetLossFunction(loss_function);
 
-    auto derivative = derivative_map.find({of, lf});
+    SetDerivativeActivationFunction(static_cast<DERIVATIVE_ACTIVATION_FUNCTION>(activation_function));
+
+    auto derivative = derivative_map.find({output_function, loss_function});
 
     if(derivative != derivative_map.end()) {
         SetDerivativeOutputFunction(derivative->second);
@@ -233,11 +270,10 @@ void MLP::SetFunctions(ACTIVATION_FUNCTION af, OUTPUT_FUNCTION of, LOSS_FUNCTION
 }
 //============================================================================================================
 void MLP::SetParameter(int thd_size, double lr, double lamb, Optimizer::TYPE opt_type, double b1 = 0.8, double b2 = 0.9) {
-    thread_size     = thd_size;
+    thread_size = batch_size == 1 ? 1 : thd_size;
     learning_rate   = lr;
     lambda          = lamb;
 
-    enable_optimizer    = opt_type != Optimizer::TYPE::NONE;
     optimizer_type      = opt_type;
 
     switch (optimizer_type) {
@@ -252,7 +288,7 @@ void MLP::SetParameter(int thd_size, double lr, double lamb, Optimizer::TYPE opt
     }
 }
 //============================================================================================================
-void MLP::ForwardBatchPropagation(const size_t &begin, const size_t &end) {
+void MLP::ForwardBatchPropagation(const size_t &begin, const size_t &end, const double &L2) {
     for(size_t i = begin; i <= end; i++) {
         for(size_t j = 0; j < neural_number_of_layer.size() - 1; j++) {
             cv::Mat product = mlp_layer_weight_values[j] * mlp_layer_values[i][j] + mlp_layer_bias_values[j];
@@ -265,13 +301,17 @@ void MLP::ForwardBatchPropagation(const size_t &begin, const size_t &end) {
         }
 
         output_value[i]         = OutputFunction(mlp_layer_values[i][mlp_layer_values[i].size() - 1]);
-        output_loss_value[i]    = LossFunction(output_value[i], label_value[i]) + Machine_Learning_Math::L2Regression(mlp_layer_weight_values, lambda);
+        output_loss_value[i]    = LossFunction(output_value[i], label_value[i]) + L2;
     }
 }
 //============================================================================================================
 void MLP::Backward() {
     UpdateNeuralNet();
-    optimizer->PlusADAMCount();
+
+    if(optimizer_type == Optimizer::TYPE::ADAM)
+    {
+        optimizer->PlusADAMCount();
+    }
 }
 //============================================================================================================
 void MLP::SetADAM(double b1, double b2) const {
@@ -292,14 +332,12 @@ void MLP::UpdateNeuralNet() {
             DerivativeHiddenLayer(i + 1);
         }
 
-//        boost::thread   thd_weight(&MLP::DerivativeCalWeight, this, i);
-//        boost::thread   thd_bias(&MLP::DerivativeCalBias, this, i);
-        DerivativeCalWeight(i);
-        DerivativeCalBias(i);
+        boost::thread   thd_weight(&MLP::DerivativeCalWeight, this, i);
+        boost::thread   thd_bias(&MLP::DerivativeCalBias, this, i);
         boost::thread   thd_layer(&MLP::DerivativeCalLayer, this, i);
 
-//        thd_weight.join();
-//        thd_bias.join();
+        thd_weight.join();
+        thd_bias.join();
 
         switch (optimizer_type) {
             case Optimizer::TYPE::NONE:
@@ -308,8 +346,8 @@ void MLP::UpdateNeuralNet() {
                 break;
             case Optimizer::TYPE::ADAM:
                 optimizer->UpdateADAM(update_layer_weight_values, update_layer_bias_values, i);
-                cv::Mat     weight_result   = optimizer->GetWeightResult();
-                cv::Mat     bias_result     = optimizer->GetBiasResult();
+                const cv::Mat &weight_result   = optimizer->GetWeightResult();
+                const cv::Mat &bias_result     = optimizer->GetBiasResult();
                 mlp_layer_weight_values[i]  -= learning_rate * weight_result;
                 mlp_layer_bias_values[i]    -= learning_rate * bias_result;
                 break;
@@ -386,18 +424,18 @@ void MLP::DerivativeCalWeight(const size_t &idx) {
 
         end         = end > batch_size ? batch_size - 1 : end;
 
-        vec_thread.emplace_back(std::make_unique<boost::thread>(
+        vec_weight_thread.emplace_back(std::make_unique<boost::thread>(
                 [this, &temp_mat, begin, end, capture0 = idx + 1, idx] {
                     CalVecLayerProduct(temp_mat, begin, end, capture0, idx);
                 }));
     }
 
-    for(const auto &thd : vec_thread) {
+    for(const auto &thd : vec_weight_thread) {
         if(thd && thd->joinable())
             thd->join();
     }
 
-    vec_thread.clear();
+    vec_weight_thread.clear();
 
     for(int i = 0; i < thread_size; i++) {
         size_t begin = i * section_size;
@@ -405,7 +443,7 @@ void MLP::DerivativeCalWeight(const size_t &idx) {
 
         end = end > batch_size ? batch_size - 1 : end;
 
-        vec_thread.emplace_back(std::make_unique<boost::thread>(&MLP::CalVecMatSum,
+        vec_weight_thread.emplace_back(std::make_unique<boost::thread>(&MLP::CalVecMatSum,
                                                                 this,
                                                                 temp_mat,
                                                                 &temp_sum[i],
@@ -413,17 +451,17 @@ void MLP::DerivativeCalWeight(const size_t &idx) {
                                                                 end));
     }
 
-    for(const auto &thd : vec_thread) {
+    for(const auto &thd : vec_weight_thread) {
         if(thd && thd->joinable())
             thd->join();
     }
 
-    vec_thread.clear();
+    vec_weight_thread.clear();
 
     CalVecMatSum(temp_sum, &sum, 0, thread_size - 1);
     CalMatAverage(sum, &update_layer_weight_values[idx], batch_size);
 
-    update_layer_weight_values[idx] += DerivativeL2Regression(mlp_layer_weight_values[idx]);
+    update_layer_weight_values[idx] += Machine_Learning_Math::DerivativeL2Regression(mlp_layer_weight_values[idx], lambda);
 }
 //============================================================================================================
 void MLP::CalVecLayerProduct(std::vector<cv::Mat> &temp, const size_t &begin, const size_t &end, const size_t &idx1, const size_t &idx2) {
@@ -449,10 +487,6 @@ void MLP::CalMatAverage(const cv::Mat &source, cv::Mat *destination, const size_
     }
 }
 //============================================================================================================
-cv::Mat MLP::DerivativeL2Regression(const cv::Mat &weight) const {
-    return 2.0 * lambda * weight;
-}
-//============================================================================================================
 void MLP::DerivativeCalBias(const size_t &idx) {
     std::vector<cv::Mat> temp_sum(thread_size);
     std::vector<cv::Mat> temp_layer(batch_size);
@@ -468,7 +502,7 @@ void MLP::DerivativeCalBias(const size_t &idx) {
 
         end = end > batch_size ? batch_size - 1 : end;
 
-        vec_thread.emplace_back(std::make_unique<boost::thread>(&MLP::CalVecMatSum,
+        vec_bias_thread.emplace_back(std::make_unique<boost::thread>(&MLP::CalVecMatSum,
                                                                 this,
                                                                 temp_layer,
                                                                 &temp_sum[i],
@@ -476,12 +510,12 @@ void MLP::DerivativeCalBias(const size_t &idx) {
                                                                 end));
     }
 
-    for (const auto &thd: vec_thread) {
+    for (const auto &thd: vec_bias_thread) {
         if (thd && thd->joinable())
             thd->join();
     }
 
-    vec_thread.clear();
+    vec_bias_thread.clear();
 
     CalVecMatSum(temp_sum, &sum, 0, thread_size - 1);
     CalMatAverage(sum, &update_layer_bias_values[idx], batch_size);
@@ -497,13 +531,20 @@ void MLP::DerivativeCalLayer(const size_t &idx) {
 
         end = end > batch_size ? batch_size - 1 : end;
 
-        vec_thread.emplace_back(std::make_unique<boost::thread>(&MLP::CalWeightLayerProduct,
+        vec_layer_thread.emplace_back(std::make_unique<boost::thread>(&MLP::CalWeightLayerProduct,
                                                                 this,
                                                                 begin,
                                                                 end,
                                                                 idx,
                                                                 idx + 1));
     }
+
+    for (const auto &thd: vec_layer_thread) {
+        if (thd && thd->joinable())
+            thd->join();
+    }
+
+    vec_layer_thread.clear();
 }
 //============================================================================================================
 void MLP::CalWeightLayerProduct(const size_t &begin, const size_t &end, const size_t &idx1, const size_t &idx2) {
@@ -550,10 +591,6 @@ void MLP::AssignNeuralNumberOfLayer(const std::vector<int> &number) {
 //============================================================================================================
 size_t MLP::GetThreadSize() const {
     return thread_size;
-}
-//============================================================================================================
-size_t MLP::GetSectionSize() const {
-    return section_size;
 }
 //============================================================================================================
 size_t MLP::GetBatchSize() const {
@@ -621,12 +658,7 @@ void MLP::InitTrainNeuralNet(const size_t &size) {
     InitNeuralNetWeightBias(update_layer_weight_values, update_layer_bias_values);
 }
 //============================================================================================================
-void MLP::ShowMat(const cv::Mat &input) {
-    for(int i = 0; i < input.rows; i++) {
-        for(int j = 0; j < input.cols; j++) {
-            std::cout << input.at<float>(i, j) << " ";
-        }
-        std::cout << std::endl;
-    }
+ACTIVATION_FUNCTION MLP::GetActivationFunctionType() const {
+    return activation_function;
 }
 //============================================================================================================

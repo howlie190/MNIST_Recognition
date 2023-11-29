@@ -10,6 +10,7 @@
 #include <random>
 #include <algorithm>
 #include <sstream>
+#include <numeric>
 
 //============================================================================================================
 void Image_MLP::Init() {
@@ -31,6 +32,7 @@ void Image_MLP::Init() {
     test_data_set.clear();
     file_name.clear();
     vec_loss.clear();
+    train_data_set_index.clear();
 
     for(const auto &thd : vec_thread) {
         if(thd && thd->joinable())
@@ -38,8 +40,6 @@ void Image_MLP::Init() {
     }
 
     vec_thread.clear();
-
-
 }
 //============================================================================================================
 bool Image_MLP::SaveModel(const char *path, const char *name, bool override) {
@@ -188,6 +188,9 @@ std::vector<double> Image_MLP::Train() {
     size_t file_size = file_name.size();
 
     train_data_set.resize(file_size);
+    train_data_set_index.resize(file_size);
+    std::iota(train_data_set_index.begin(), train_data_set_index.end(), 0);
+
     vec_loss.clear();
 
     size_t thread_size = GetThreadSize();
@@ -217,7 +220,7 @@ std::vector<double> Image_MLP::Train() {
 
     std::random_device  rd;
     std::mt19937        g(rd());
-    std::shuffle(train_data_set.begin(), train_data_set.end(), g);
+    std::shuffle(train_data_set_index.begin(), train_data_set_index.end(), g);
 
     hMap_mem_data       = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, TEXT("FileMapping"));
     pBuf                = (LPTSTR)MapViewOfFile(hMap_mem_data, FILE_MAP_ALL_ACCESS, 0, 0, sizeof( char[1024]));
@@ -241,7 +244,7 @@ std::vector<double> Image_MLP::Train() {
         if(threshold_reached) {
             std::random_device  trd;
             std::mt19937        tg(trd());
-            std::shuffle(train_data_set.begin(), train_data_set.end(), tg);
+            std::shuffle(train_data_set_index.begin(), train_data_set_index.end(), tg);
 
             threshold_reached   = false;
         }
@@ -254,6 +257,7 @@ std::vector<double> Image_MLP::Train() {
     }
 
     train_data_set.clear();
+    train_data_set_index.clear();
     file_name.clear();
 
     UnmapViewOfFile(pBuf);
@@ -281,9 +285,9 @@ void Image_MLP::TrainHelper() {
         end         = end > data_size ? (int)data_size - 1 : end;
 
         for(int j = begin, k = 0; j <= end; j++, k++) {
-            SetTrainingInput(k, train_data_set[j].second);
+            SetTrainingInput(k, train_data_set[train_data_set_index[j]].second);
 
-            int     label       = std::strtol(&train_data_set[j].first[0], nullptr, 10);
+            int     label       = std::strtol(&train_data_set[train_data_set_index[j]].first[0], nullptr, 10);
             cv::Mat label_mat   = cv::Mat::zeros((int)GetNumberOfOutputLayer(), 1, CV_32FC1);
             label_mat.at<float>(label, 0)       = 1.0;
             SetTrainingLabel(k, std::move(label_mat));
@@ -314,7 +318,10 @@ void Image_MLP::TrainHelper() {
         if(stop_training) {
             break;
         } else if(loss < threshold) {
-            threshold_reached   = true;
+            threshold_reached = true;
+            if(batch_size == 1) {
+                break;
+            }
         }
 
         vec_loss.push_back(loss);
@@ -395,10 +402,31 @@ double Image_MLP::Test() {
 void Image_MLP::SetInput(const cv::Mat &input) {
     cv::Mat temp((int)GetNumberOfInputLayer(), 1, CV_32FC1);
 
-    for(int i = 0, k = 0; i < input.rows; i++) {
-        for(int j = 0; j < input.cols; j++, k++) {
-            temp.at<float>(k, 0)    = static_cast<float>(input.at<uchar>(i, j)) / 255;
-        }
+    switch (GetActivationFunctionType()) {
+
+        case ACTIVATION_FUNCTION::SIGMOID:
+            for(int i = 0, k = 0; i < input.rows; i++) {
+                for(int j = 0; j < input.cols; j++, k++) {
+                    temp.at<float>(k, 0)    = static_cast<float>(input.at<uchar>(i, j)) / 255;
+                }
+            }
+            break;
+        case ACTIVATION_FUNCTION::TANH:
+            for(int i = 0, k = 0; i < input.rows; i++) {
+                for(int j = 0; j < input.cols; j++, k++) {
+                    temp.at<float>(k, 0)    = (static_cast<float>(input.at<uchar>(i, j)) - 128) / 128;
+                }
+            }
+            break;
+        case ACTIVATION_FUNCTION::RELU:
+        case ACTIVATION_FUNCTION::NONE:
+        default:
+            for(int i = 0, k = 0; i < input.rows; i++) {
+                for(int j = 0; j < input.cols; j++, k++) {
+                    temp.at<float>(k, 0)    = static_cast<float>(input.at<uchar>(i, j));
+                }
+            }
+            break;
     }
 
     SetInputLayer(std::move(temp));

@@ -87,7 +87,6 @@ public:
                                                             LOSS_FUNCTION);
     void                                        SetParameter(int, double, double, Optimizer::TYPE, double, double);
     void                                        SetADAM(double, double) const;
-    static void                                 ShowMat(const cv::Mat&);
 protected:
     MLP() { MLP::Init(); }
     virtual ~MLP();
@@ -114,15 +113,15 @@ protected:
     std::vector<int>                            GetNeuralNumberOfLayer() const;
     std::vector<cv::Mat>                        GetMLPLayerWeight() const;
     std::vector<cv::Mat>                        GetMLPLayerBias() const;
-    size_t                                      GetThreadSize() const;
-    size_t                                      GetSectionSize() const;
-    size_t                                      GetBatchSize() const;
-    size_t                                      GetNumberOfInputLayer() const;
-    size_t                                      GetNumberOfOutputLayer() const;
-    double                                      GetLossValue() const;
-    cv::Mat                                     GetPredictOutput() const;
+    size_t                                      GetThreadSize() const;                      //取的thread數量
+    size_t                                      GetBatchSize() const;                       //取得批次大小
+    size_t                                      GetNumberOfInputLayer() const;              //取得輸入層的節點數
+    size_t                                      GetNumberOfOutputLayer() const;             //取得輸出層的節點數
+    double                                      GetLossValue() const;                       //取得loss value
+    cv::Mat                                     GetPredictOutput() const;                   //取得預測的輸出層
+    ACTIVATION_FUNCTION                         GetActivationFunctionType() const;          //取得啟動函數類型
 
-    void                                        ForwardBatch();                                  //正向傳播
+    void                                        ForwardBatch();                             //正向傳播
     void                                        Backward();                                 //反向傳播
     void                                        Forward();                                  //預測
 private:
@@ -137,6 +136,9 @@ private:
     std::vector<cv::Mat>                        mlp_layer_value_predict;                    //測試預測用的節點數值
 
     std::vector<std::unique_ptr<boost::thread>> vec_thread;                                 //多執行續容器
+    std::vector<std::unique_ptr<boost::thread>> vec_weight_thread;
+    std::vector<std::unique_ptr<boost::thread>> vec_bias_thread;
+    std::vector<std::unique_ptr<boost::thread>> vec_layer_thread;
 
     std::vector<double>                         output_loss_value;                          //損失值
     std::vector<cv::Mat>                        label_value;                                //標籤值
@@ -152,8 +154,6 @@ private:
     double                                      learning_rate{};                            //學習率
     double                                      lambda{};
 
-    bool                                        enable_optimizer{};
-
     Optimizer::TYPE                             optimizer_type{};
 
     pActivationFunction                         ActivationFunction{};                       //激活函數指標
@@ -161,6 +161,10 @@ private:
     pLossFunction                               LossFunction{};                             //損失函數指標
     pDerivativeActivationFunction               DerivativeActivationFunction{};             //激活函數導數函數指標
     pDerivativeOutputFunction                   DerivativeOutputFunction{};                 //輸出層導函數指標
+
+    ACTIVATION_FUNCTION                         activation_function;
+    OUTPUT_FUNCTION                             output_function;
+    LOSS_FUNCTION                               loss_function;
 
     std::map<std::pair<OUTPUT_FUNCTION, LOSS_FUNCTION>, DERIVATIVE_OUTPUT_FUNCTION> derivative_map = {
             {{OUTPUT_FUNCTION::SOFTMAX, LOSS_FUNCTION::CROSS_ENTROPY}, DERIVATIVE_OUTPUT_FUNCTION::SOFTMAX_CROSS_ENTROPY},
@@ -170,7 +174,7 @@ private:
             {{OUTPUT_FUNCTION::NONE, LOSS_FUNCTION::MEAN_SQUARED_ERROR}, DERIVATIVE_OUTPUT_FUNCTION::NONE_MEAN_SQUARED_ERROR}
     };  //輸出函數導數映射
 
-    void                                        ForwardBatchPropagation(const size_t&, const size_t&);       //正向傳播算法
+    void                                        ForwardBatchPropagation(const size_t&, const size_t&, const double&);                              //正向傳播算法
     void                                        UpdateNeuralNet();
 
     void                                        DerivativeOutputLayer();
@@ -180,7 +184,6 @@ private:
     void                                        DerivativeCalWeight(const size_t&);
     void                                        DerivativeCalBias(const size_t&);
     void                                        DerivativeCalLayer(const size_t&);
-    cv::Mat                                     DerivativeL2Regression(const cv::Mat&) const;
 
     void                                        CalVecLayerProduct(std::vector<cv::Mat>&, const size_t&, const size_t&, const size_t&, const size_t&);
     void                                        CalVecMatSum(const std::vector<cv::Mat>&, cv::Mat*, const size_t&, const size_t&);

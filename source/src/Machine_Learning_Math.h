@@ -44,8 +44,9 @@ public:
     static void     DerivativeMeanSquaredError(const cv::Mat&, const cv::Mat&, cv::Mat*);
     static void     DerivativeReLUMeanSquaredError(const cv::Mat&, const cv::Mat&, cv::Mat*);
 //============================================================================================================
-    //正規畫
+    //正則化
     static double   L2Regression(const std::vector<cv::Mat>&, double);
+    static cv::Mat  DerivativeL2Regression(const cv::Mat&, const double&);
 //============================================================================================================
 };
 

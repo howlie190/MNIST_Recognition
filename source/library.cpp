@@ -19,21 +19,21 @@ void InitBmpDigitRecognitionNeuralNet(std::vector<int> &layerNeuralNumber) {
     pBmpDigitRecognition->InitNeuralNet(std::move(layerNeuralNumber));
 }
 //============================================================================================================
-void SetBmpDigitRecognition(int     activation_function,
-                            int     output_function,
-                            int     loss_function,
-                            double  learning_rate,
-                            double  lambda,
-                            double  threshold,
-                            int     epoch,
-                            int     init_weight_type,
-                            double  init_weight_mean,
-                            double  init_weight_standard_deviation,
-                            int     batch_size,
-                            int     optimizer,
-                            double  beta1,
-                            double  beta2,
-                            int     thread) {
+void SetBmpDigitRecognition(int     activation_function,            //啟動函數
+                            int     output_function,                //輸出層啟動函數
+                            int     loss_function,                  //損失函數
+                            double  learning_rate,                  //學習率
+                            double  lambda,                         //L2正則化超參數
+                            double  threshold,                      //訓練閾值
+                            int     epoch,                          //迭代次數
+                            int     init_weight_type,               //權重初始化種類
+                            double  init_weight_mean,               //權重初始平均
+                            double  init_weight_standard_deviation, //權重初始標準差
+                            int     batch_size,                     //批次大小
+                            int     optimizer,                      //優化器
+                            double  beta1,                          //Adam優化器超參數
+                            double  beta2,                          //Adam優化器超參數
+                            int     thread) {                       //執行緒
     pBmpDigitRecognition->InitTrainNeuralNet(batch_size);
     pBmpDigitRecognition->SetFunctions(static_cast<ACTIVATION_FUNCTION>(activation_function),
                                        static_cast<OUTPUT_FUNCTION>(output_function),

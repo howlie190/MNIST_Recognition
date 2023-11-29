@@ -5,6 +5,7 @@
 #include "Machine_Learning_Math.h"
 #include <opencv2/opencv.hpp>
 
+//計算Sigmoid
 cv::Mat Machine_Learning_Math::Sigmoid(const cv::Mat &input) {
     cv::Mat exp_x;
 
@@ -17,6 +18,7 @@ cv::Mat Machine_Learning_Math::Sigmoid(const cv::Mat &input) {
     return output;
 }
 //============================================================================================================
+//計算Tanh
 cv::Mat Machine_Learning_Math::Tanh(const cv::Mat &input) {
     cv::Mat exp_x, exp_x_n;
 
@@ -33,6 +35,7 @@ cv::Mat Machine_Learning_Math::Tanh(const cv::Mat &input) {
     return numerator;
 }
 //============================================================================================================
+//計算ReLU
 cv::Mat Machine_Learning_Math::ReLU(const cv::Mat &input) {
     cv::Mat output;
 
@@ -43,6 +46,7 @@ cv::Mat Machine_Learning_Math::ReLU(const cv::Mat &input) {
     return output;
 }
 //============================================================================================================
+//計算Softmax
 cv::Mat Machine_Learning_Math::Softmax(const cv::Mat &input) {
     cv::Mat exp;
     double  min, max;
@@ -61,6 +65,7 @@ cv::Mat Machine_Learning_Math::Softmax(const cv::Mat &input) {
     return output;
 }
 //============================================================================================================
+//計算MSE
 double Machine_Learning_Math::MeanSquaredError(const cv::Mat &output, const cv::Mat &label) {
     cv::Mat result;
     cv::pow(label - output, 2.0, result);
@@ -72,6 +77,7 @@ double Machine_Learning_Math::MeanSquaredError(const cv::Mat &output, const cv::
     return mse[0];
 }
 //============================================================================================================
+//計算Cross Entropy
 double Machine_Learning_Math::CrossEntropy(const cv::Mat &output, const cv::Mat &label) {
     cv::Mat result;
     cv::log(output, result);
@@ -84,6 +90,7 @@ double Machine_Learning_Math::CrossEntropy(const cv::Mat &output, const cv::Mat 
     return -sum / result.rows;
 }
 //============================================================================================================
+//計算Binary Cross Entropy
 double Machine_Learning_Math::BinaryCrossEntropy(const cv::Mat &output, const cv::Mat &label) {
     cv::Mat firstLog, secondLog;
     cv::log(output, firstLog);
@@ -98,6 +105,7 @@ double Machine_Learning_Math::BinaryCrossEntropy(const cv::Mat &output, const cv
     return loss;
 }
 //============================================================================================================
+//計算Sigmoid導數
 void Machine_Learning_Math::DerivativeSigmoid(const cv::Mat &source, cv::Mat &destination) {
     destination = source.mul(1.0f - source);
 #ifdef USE_PATCH_NANS
@@ -105,6 +113,7 @@ void Machine_Learning_Math::DerivativeSigmoid(const cv::Mat &source, cv::Mat &de
 #endif
 }
 //============================================================================================================
+//計算ReLU導數
 void Machine_Learning_Math::DerivativeReLU(const cv::Mat &source, cv::Mat &destination) {
     destination = source.clone();
     cv::threshold(destination, destination, 0, 1, cv::THRESH_BINARY);
@@ -113,15 +122,17 @@ void Machine_Learning_Math::DerivativeReLU(const cv::Mat &source, cv::Mat &desti
 #endif
 }
 //============================================================================================================
+//計算Tanh導數
 void Machine_Learning_Math::DerivativeTanh(const cv::Mat &source, cv::Mat &destination) {
     cv::Mat pow;
     cv::pow(source, 2, pow);
-    cv::add(pow, -1.0, destination);
+    cv::add(-pow, 1.0, destination);
 #ifdef USE_PATCH_NANS
     cv::patchNaNs(destination, 1.0);
 #endif
 }
 //============================================================================================================
+//計算Cross Entropy導數
 void Machine_Learning_Math::DerivativeSoftmaxCrossEntropy(const cv::Mat &output, const cv::Mat &label, cv::Mat *destination) {
     cv::subtract(output, label, *destination);
 #ifdef USE_PATCH_NANS
@@ -129,6 +140,7 @@ void Machine_Learning_Math::DerivativeSoftmaxCrossEntropy(const cv::Mat &output,
 #endif
 }
 //============================================================================================================
+//計算Binary Cross Entropy導數
 void Machine_Learning_Math::DerivativeSigmoidBinaryCrossEntropy(const cv::Mat &output, const cv::Mat &label, cv::Mat *destination) {
     cv::subtract(output, label, *destination);
 #ifdef USE_PATCH_NANS
@@ -136,6 +148,7 @@ void Machine_Learning_Math::DerivativeSigmoidBinaryCrossEntropy(const cv::Mat &o
 #endif
 }
 //============================================================================================================
+//計算輸出層Tanh搭配MSE的導數
 void Machine_Learning_Math::DerivativeTanhMeanSquaredError(const cv::Mat &output, const cv::Mat &label, cv::Mat *destination) {
     cv::Mat pow;
     cv::pow(output, 2.0, pow);
@@ -151,6 +164,7 @@ void Machine_Learning_Math::DerivativeTanhMeanSquaredError(const cv::Mat &output
 #endif
 }
 //============================================================================================================
+//計算MSE的導數
 void Machine_Learning_Math::DerivativeMeanSquaredError(const cv::Mat &output, const cv::Mat &label, cv::Mat *destination) {
     cv::subtract(output, label, *destination);
     *destination *= 2.0;
@@ -159,14 +173,17 @@ void Machine_Learning_Math::DerivativeMeanSquaredError(const cv::Mat &output, co
 #endif
 }
 //============================================================================================================
+//計算沒有啟動函數
 cv::Mat Machine_Learning_Math::None(const cv::Mat &input) {
     return input.clone();
 }
 //============================================================================================================
+//計算沒有啟動函數的導數
 void Machine_Learning_Math::DerivativeNone(const cv::Mat &source, cv::Mat &destination) {
     destination     = source.clone();
 }
 //============================================================================================================
+//計算輸出層ReLU搭配MSE的導數
 void Machine_Learning_Math::DerivativeReLUMeanSquaredError(const cv::Mat &output, const cv::Mat &label, cv::Mat *destination) {
     cv::Mat dMSE = 2.0 * (output - label);
     cv::threshold(dMSE, *destination, 0, 0, cv::THRESH_TOZERO);
@@ -175,6 +192,7 @@ void Machine_Learning_Math::DerivativeReLUMeanSquaredError(const cv::Mat &output
 #endif
 }
 //============================================================================================================
+//計算L2正則化數值
 double Machine_Learning_Math::L2Regression(const std::vector<cv::Mat> &weight, double lambda) {
     cv::Mat     squared;
     cv::Scalar  sum = 0;
@@ -185,5 +203,10 @@ double Machine_Learning_Math::L2Regression(const std::vector<cv::Mat> &weight, d
     }
 
     return lambda * sum[0];
+}
+//============================================================================================================
+//計算L2正則化的導數
+cv::Mat Machine_Learning_Math::DerivativeL2Regression(const cv::Mat &weight, const double &lambda) {
+    return 2.0 * lambda * weight;
 }
 //============================================================================================================

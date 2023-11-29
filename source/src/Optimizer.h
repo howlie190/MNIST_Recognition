@@ -29,14 +29,14 @@ public:
     Optimizer() : type(TYPE::NONE) {}
     explicit    Optimizer(TYPE t) : type(t) { Init(); }
 
-    void        Init();
-    void        SetType(TYPE);
-    void        SetADAM(const std::vector<int>&, double, double);
-    void        SetOptimizer();
-    void        UpdateADAM(const std::vector<cv::Mat>&, const std::vector<cv::Mat>&, const size_t&);
-    cv::Mat     GetWeightResult() const;
-    cv::Mat     GetBiasResult() const;
-    void        PlusADAMCount();
+    void            Init();
+    void            SetType(TYPE);
+    void            SetADAM(const std::vector<int>&, double, double);
+    void            SetOptimizer();
+    void            UpdateADAM(const std::vector<cv::Mat>&, const std::vector<cv::Mat>&, const size_t&);
+    const cv::Mat&  GetWeightResult() const;
+    const cv::Mat&  GetBiasResult() const;
+    void            PlusADAMCount();
 
     Optimizer(const Optimizer&) = delete;
     Optimizer& operator=(const Optimizer&) = default;

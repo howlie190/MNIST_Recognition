@@ -43,11 +43,11 @@ private:
     std::vector<std::pair<std::string, std::string>>    file_name;
     std::vector<std::unique_ptr<boost::thread>>         vec_thread;
     std::vector<double>                                 vec_loss;
+    std::vector<int>                                    train_data_set_index;
 
     int                                                 epoch{};
 
     double                                              threshold{};
-private:
     double                                              loss_value{};
 
     bool                                                stop_training{};

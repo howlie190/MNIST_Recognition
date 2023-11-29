@@ -78,11 +78,11 @@ void Optimizer::UpdateADAM(const std::vector<cv::Mat> &weight, const std::vector
     cv::divide(mt_bias[idx], sqrt, bias_result);
 }
 //============================================================================================================
-cv::Mat Optimizer::GetWeightResult() const {
+const cv::Mat& Optimizer::GetWeightResult() const {
     return weight_result;
 }
 //============================================================================================================
-cv::Mat Optimizer::GetBiasResult() const {
+const cv::Mat& Optimizer::GetBiasResult() const {
     return bias_result;
 }
 //============================================================================================================
