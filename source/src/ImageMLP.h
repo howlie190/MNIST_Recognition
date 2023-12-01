@@ -44,11 +44,13 @@ private:
     std::vector<std::unique_ptr<boost::thread>>         vec_thread;
     std::vector<double>                                 vec_loss;
     std::vector<int>                                    train_data_set_index;
+    std::vector<double>                                 vec_epoch_loss;
 
     int                                                 epoch{};
 
     double                                              threshold{};
     double                                              loss_value{};
+    double                                              epoch_loss{};
 
     bool                                                stop_training{};
     bool                                                threshold_reached{};

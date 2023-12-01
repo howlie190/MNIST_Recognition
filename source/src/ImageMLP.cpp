@@ -18,6 +18,7 @@ void Image_MLP::Init() {
     epoch               = 1;
     threshold           = 0.001;
     loss_value          = 0;
+    epoch_loss          = 0;
 
     stop_training       = false;
     threshold_reached   = false;
@@ -33,6 +34,7 @@ void Image_MLP::Init() {
     file_name.clear();
     vec_loss.clear();
     train_data_set_index.clear();
+    vec_epoch_loss.clear();
 
     for(const auto &thd : vec_thread) {
         if(thd && thd->joinable())
@@ -192,6 +194,7 @@ std::vector<double> Image_MLP::Train() {
     std::iota(train_data_set_index.begin(), train_data_set_index.end(), 0);
 
     vec_loss.clear();
+    vec_epoch_loss.clear();
 
     size_t thread_size = GetThreadSize();
     size_t section_size = file_size % thread_size == 0 ? file_size / thread_size : file_size / thread_size + 1;
@@ -256,6 +259,21 @@ std::vector<double> Image_MLP::Train() {
         }
     }
 
+    for(int i = 0; i < vec_epoch_loss.size(); i++) {
+        std::stringstream   ss;
+        ss << "Epoch : " << std::setw(10) << std::left << i + 1;
+        str_log     = ss.str();
+
+        char                temp[32];
+        snprintf(temp, 32, "%.15f", vec_epoch_loss[i]);
+        str_log     += "Loss Value : " + std::string(temp);
+
+        WaitForSingleObject(hEvent_write, INFINITE);
+        CopyMemory(pBuf, str_log.c_str(), strlen(str_log.c_str()));
+        ResetEvent(hEvent_write);
+        SetEvent(hEvent_read);
+    }
+
     train_data_set.clear();
     train_data_set_index.clear();
     file_name.clear();
@@ -274,6 +292,8 @@ void Image_MLP::TrainHelper() {
     size_t  interval_size   = data_size % batch_size
             ? data_size / batch_size + 1
             : data_size / batch_size;
+
+    epoch_loss      = 0;
 
     for(size_t i = 0; i < interval_size; i++) {
 #ifndef MachineLearning_EXPORTS
@@ -296,6 +316,8 @@ void Image_MLP::TrainHelper() {
         ForwardBatch();
 
         double loss = GetLossValue();
+        epoch_loss  += loss;
+
 
 #ifndef MachineLearning_EXPORTS
         std::cout << "Loss Value : " << loss << "\t";
@@ -319,15 +341,15 @@ void Image_MLP::TrainHelper() {
             break;
         } else if(loss < threshold) {
             threshold_reached = true;
-            if(batch_size == 1) {
-                break;
-            }
+            break;
         }
 
         vec_loss.push_back(loss);
 
         Backward();
     }
+
+    vec_epoch_loss.push_back(epoch_loss / static_cast<double>(interval_size));
 }
 //============================================================================================================
 void Image_MLP::SetTrainingInput(const size_t &idx, const cv::Mat &input) {
