@@ -2,7 +2,7 @@
 
 ## 預先準備
 
-1. 會使用到matplotlib，請先下載python 3.11並安裝matplotlib。
+1. 會使用到matplotlib，請先下載python 3.12並安裝matplotlib。
 2. 訓練集與測試集分別在./GUI/train與./GUI/test裡。
 3. 執行./GUI/MNIST_Recognition.exe即可開啟Demo程式。
 
