@@ -1,1 +1,0 @@
-CMakeLists.txt not found in D:\GitWorkSpace\MNIST_Recognition\MLP Select CMakeLists.txt
