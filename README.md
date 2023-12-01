@@ -19,17 +19,17 @@
 
 ## 範例
 1. 設置
-
+---
 ![Setting](./GUI/image/Smaple_Setting.png)
 2. 訓練
-
+---
 ![Training](./GUI/image/Training_Result.png)
 ![Loss](./GUI/image/Loss_Curve.png)
 3. 測試
-
+---
 ![Test](./GUI/image/Test.png)
 4. 預測
-
+---
 ![Predict](./GUI/image/Predict.png)
 
 
