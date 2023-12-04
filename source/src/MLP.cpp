@@ -26,6 +26,9 @@ MLP::~MLP() {
         if(thd && thd->joinable())
             thd->join();
     }
+
+    if(thread_pool)
+        delete thread_pool;
 }
 //============================================================================================================
 void MLP::Init() {
@@ -232,21 +235,27 @@ void MLP::SetDerivativeOutputFunction(DERIVATIVE_OUTPUT_FUNCTION dof) {
 void MLP::ForwardBatch() {
     double  L2 = Machine_Learning_Math::L2Regression(mlp_layer_weight_values, lambda);
 
+    std::vector<std::future<void>>  future(thread_size);
+
     for(int i = 0; i < thread_size; i++) {
         size_t  begin   = i * section_size;
         size_t  end     = (i + 1) * section_size - 1;
 
         end         = end > batch_size ? batch_size - 1 : end;
 
-        vec_thread.emplace_back(std::make_unique<boost::thread>(&MLP::ForwardBatchPropagation, this, begin, end, L2));
+//        vec_thread.emplace_back(std::make_unique<boost::thread>(&MLP::ForwardBatchPropagation, this, begin, end, L2));
+        future[i]   = thread_pool->enqueue([this, begin, end, L2] { ForwardBatchPropagation(begin, end, L2); });
     }
 
-    for(const auto &thd : vec_thread) {
-        if(thd && thd->joinable())
-            thd->join();
+//    for(const auto &thd : vec_thread) {
+//        if(thd && thd->joinable())
+//            thd->join();
+//    }
+//
+//    vec_thread.clear();
+    for(auto &f : future) {
+        f.wait();
     }
-
-    vec_thread.clear();
 }
 //============================================================================================================
 void MLP::SetFunctions(ACTIVATION_FUNCTION af, OUTPUT_FUNCTION of, LOSS_FUNCTION lf) {
@@ -275,6 +284,12 @@ void MLP::SetParameter(int thd_size, double lr, double lamb, Optimizer::TYPE opt
     lambda          = lamb;
 
     optimizer_type      = opt_type;
+
+    if(thread_pool) {
+        delete thread_pool;
+    }
+
+    thread_pool = new ThreadPool(thread_size);
 
     switch (optimizer_type) {
         case Optimizer::TYPE::NONE:
@@ -332,12 +347,15 @@ void MLP::UpdateNeuralNet() {
             DerivativeHiddenLayer(i + 1);
         }
 
-        boost::thread   thd_weight(&MLP::DerivativeCalWeight, this, i);
-        boost::thread   thd_bias(&MLP::DerivativeCalBias, this, i);
-        boost::thread   thd_layer(&MLP::DerivativeCalLayer, this, i);
+//        boost::thread   thd_weight(&MLP::DerivativeCalWeight, this, i);
+//        boost::thread   thd_bias(&MLP::DerivativeCalBias, this, i);
+//        boost::thread   thd_layer(&MLP::DerivativeCalLayer, this, i);
+        auto future_weight  = thread_pool->enqueue([this, i](){ DerivativeCalWeight(i); });
+        auto future_bias    = thread_pool->enqueue([this, i] () { DerivativeCalBias(i); });
+        auto future_layer   = thread_pool->enqueue([this, i] () { DerivativeCalLayer(i); });
 
-        thd_weight.join();
-        thd_bias.join();
+        future_weight.wait();
+        future_bias.wait();
 
         switch (optimizer_type) {
             case Optimizer::TYPE::NONE:
@@ -353,26 +371,32 @@ void MLP::UpdateNeuralNet() {
                 break;
         }
 
-        thd_layer.join();
+        future_layer.wait();
     }
 }
 //============================================================================================================
 void MLP::DerivativeOutputLayer() {
+    std::vector<std::future<void>>  future(thread_size);
+
     for(int i = 0; i < thread_size; i++) {
         size_t  begin   = i * section_size;
         size_t  end     = (i + 1) * section_size - 1;
 
         end         = end > batch_size ? batch_size - 1 : end;
 
-        vec_thread.emplace_back(std::make_unique<boost::thread>(&MLP::DerivativeOutputLayerBatch, this, begin, end));
+//        vec_thread.emplace_back(std::make_unique<boost::thread>(&MLP::DerivativeOutputLayerBatch, this, begin, end));
+        future[i]   = thread_pool->enqueue([this, begin, end] { DerivativeOutputLayerBatch(begin, end); });
     }
 
-    for(const auto &thd : vec_thread) {
-        if(thd && thd->joinable())
-            thd->join();
+//    for(const auto &thd : vec_thread) {
+//        if(thd && thd->joinable())
+//            thd->join();
+//    }
+//
+//    vec_thread.clear();
+    for(auto &f : future) {
+        f.wait();
     }
-
-    vec_thread.clear();
 }
 //============================================================================================================
 void MLP::DerivativeOutputLayerBatch(const size_t &begin, const size_t &end) {
@@ -384,25 +408,31 @@ void MLP::DerivativeOutputLayerBatch(const size_t &begin, const size_t &end) {
 }
 //============================================================================================================
 void MLP::DerivativeHiddenLayer(const size_t &idx) {
+    std::vector<std::future<void>>  future(thread_size);
+
     for(int i = 0; i < thread_size; i++) {
         size_t  begin   = i * section_size;
         size_t  end     = (i + 1) * section_size - 1;
 
         end         = end > batch_size ? batch_size - 1 : end;
 
-        vec_thread.emplace_back(std::make_unique<boost::thread>(&MLP::DerivativeHiddenLayerBatch,
-                                                                this,
-                                                                idx,
-                                                                begin,
-                                                                end));
+//        vec_thread.emplace_back(std::make_unique<boost::thread>(&MLP::DerivativeHiddenLayerBatch,
+//                                                                this,
+//                                                                idx,
+//                                                                begin,
+//                                                                end));
+        future[i]   = thread_pool->enqueue([this, idx, begin, end] { DerivativeHiddenLayerBatch(idx, begin, end); });
     }
 
-    for(const auto &thd : vec_thread) {
-        if(thd && thd->joinable())
-            thd->join();
-    }
+//    for(const auto &thd : vec_thread) {
+//        if(thd && thd->joinable())
+//            thd->join();
+//    }
 
-    vec_thread.clear();
+//    vec_thread.clear();
+    for(auto &f : future) {
+        f.wait();
+    }
 }
 //============================================================================================================
 void MLP::DerivativeHiddenLayerBatch(const size_t &idx, const size_t &begin, const size_t &end) {
@@ -418,24 +448,33 @@ void MLP::DerivativeCalWeight(const size_t &idx) {
     std::vector<cv::Mat>    temp_sum(thread_size);
     cv::Mat                 sum;
 
+    std::vector<std::future<void>>  future(thread_size);
+
     for(int i = 0; i < thread_size; i++) {
         size_t  begin   = i * section_size;
         size_t  end     = (i + 1) * section_size - 1;
 
         end         = end > batch_size ? batch_size - 1 : end;
 
-        vec_weight_thread.emplace_back(std::make_unique<boost::thread>(
-                [this, &temp_mat, begin, end, capture0 = idx + 1, idx] {
-                    CalVecLayerProduct(temp_mat, begin, end, capture0, idx);
-                }));
+//        vec_weight_thread.emplace_back(std::make_unique<boost::thread>(
+//                [this, &temp_mat, begin, end, capture0 = idx + 1, idx] {
+//                    CalVecLayerProduct(temp_mat, begin, end, capture0, idx);
+//                }));
+        future[i]   = thread_pool->enqueue([this, &temp_mat, begin, end, capture0 = idx + 1, idx] {
+            CalVecLayerProduct(temp_mat, begin, end, capture0, idx);
+        });
     }
 
-    for(const auto &thd : vec_weight_thread) {
-        if(thd && thd->joinable())
-            thd->join();
-    }
+//    for(const auto &thd : vec_weight_thread) {
+//        if(thd && thd->joinable())
+//            thd->join();
+//    }
+//
+//    vec_weight_thread.clear();
 
-    vec_weight_thread.clear();
+    for(auto &f : future) {
+        f.wait();
+    }
 
     for(int i = 0; i < thread_size; i++) {
         size_t begin = i * section_size;
@@ -443,20 +482,26 @@ void MLP::DerivativeCalWeight(const size_t &idx) {
 
         end = end > batch_size ? batch_size - 1 : end;
 
-        vec_weight_thread.emplace_back(std::make_unique<boost::thread>(&MLP::CalVecMatSum,
-                                                                this,
-                                                                temp_mat,
-                                                                &temp_sum[i],
-                                                                begin,
-                                                                end));
+//        vec_weight_thread.emplace_back(std::make_unique<boost::thread>(&MLP::CalVecMatSum,
+//                                                                this,
+//                                                                temp_mat,
+//                                                                &temp_sum[i],
+//                                                                begin,
+//                                                                end));
+        future[i]   = thread_pool->enqueue([this, temp_mat, &temp_sum, begin, end, i] () {
+            CalVecMatSum(temp_mat, &temp_sum[i], begin, end);
+        });
     }
 
-    for(const auto &thd : vec_weight_thread) {
-        if(thd && thd->joinable())
-            thd->join();
+//    for(const auto &thd : vec_weight_thread) {
+//        if(thd && thd->joinable())
+//            thd->join();
+//    }
+//
+//    vec_weight_thread.clear();
+    for(auto &f : future) {
+        f.wait();
     }
-
-    vec_weight_thread.clear();
 
     CalVecMatSum(temp_sum, &sum, 0, thread_size - 1);
     CalMatAverage(sum, &update_layer_weight_values[idx], batch_size);
@@ -492,6 +537,8 @@ void MLP::DerivativeCalBias(const size_t &idx) {
     std::vector<cv::Mat> temp_layer(batch_size);
     cv::Mat sum;
 
+    std::vector<std::future<void>>  future(thread_size);
+
     for (int i = 0; i < batch_size; i++) {
         update_layer_values[i][idx + 1].copyTo(temp_layer[i]);
     }
@@ -502,20 +549,26 @@ void MLP::DerivativeCalBias(const size_t &idx) {
 
         end = end > batch_size ? batch_size - 1 : end;
 
-        vec_bias_thread.emplace_back(std::make_unique<boost::thread>(&MLP::CalVecMatSum,
-                                                                this,
-                                                                temp_layer,
-                                                                &temp_sum[i],
-                                                                begin,
-                                                                end));
+//        vec_bias_thread.emplace_back(std::make_unique<boost::thread>(&MLP::CalVecMatSum,
+//                                                                this,
+//                                                                temp_layer,
+//                                                                &temp_sum[i],
+//                                                                begin,
+//                                                                end));
+        future[i]   = thread_pool->enqueue([this, temp_layer, &temp_sum, begin, end, i] () {
+            CalVecMatSum(temp_layer, &temp_sum[i], begin, end);
+        });
     }
 
-    for (const auto &thd: vec_bias_thread) {
-        if (thd && thd->joinable())
-            thd->join();
+//    for (const auto &thd: vec_bias_thread) {
+//        if (thd && thd->joinable())
+//            thd->join();
+//    }
+//
+//    vec_bias_thread.clear();
+    for(auto &f : future) {
+        f.wait();
     }
-
-    vec_bias_thread.clear();
 
     CalVecMatSum(temp_sum, &sum, 0, thread_size - 1);
     CalMatAverage(sum, &update_layer_bias_values[idx], batch_size);
@@ -525,26 +578,34 @@ void MLP::DerivativeCalLayer(const size_t &idx) {
     std::vector<cv::Mat>    temp_sum(thread_size);
     cv::Mat                 sum;
 
+    std::vector<std::future<void>>  future(thread_size);
+
     for (int i = 0; i < thread_size; i++) {
         size_t begin = i * section_size;
         size_t end = (i + 1) * section_size - 1;
 
         end = end > batch_size ? batch_size - 1 : end;
 
-        vec_layer_thread.emplace_back(std::make_unique<boost::thread>(&MLP::CalWeightLayerProduct,
-                                                                this,
-                                                                begin,
-                                                                end,
-                                                                idx,
-                                                                idx + 1));
+//        vec_layer_thread.emplace_back(std::make_unique<boost::thread>(&MLP::CalWeightLayerProduct,
+//                                                                this,
+//                                                                begin,
+//                                                                end,
+//                                                                idx,
+//                                                                idx + 1));
+        future[i]   = thread_pool->enqueue([this, begin, end, idx] () {
+            CalWeightLayerProduct(begin, end, idx, idx + 1);
+        });
     }
 
-    for (const auto &thd: vec_layer_thread) {
-        if (thd && thd->joinable())
-            thd->join();
+//    for (const auto &thd: vec_layer_thread) {
+//        if (thd && thd->joinable())
+//            thd->join();
+//    }
+//
+//    vec_layer_thread.clear();
+    for(auto &f : future) {
+        f.wait();
     }
-
-    vec_layer_thread.clear();
 }
 //============================================================================================================
 void MLP::CalWeightLayerProduct(const size_t &begin, const size_t &end, const size_t &idx1, const size_t &idx2) {

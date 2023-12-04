@@ -355,10 +355,30 @@ void Image_MLP::TrainHelper() {
 void Image_MLP::SetTrainingInput(const size_t &idx, const cv::Mat &input) {
     cv::Mat temp((int)GetNumberOfInputLayer(), 1, CV_32FC1);
 
-    for(int i = 0, k = 0; i < input.rows; i++) {
-        for(int j = 0; j < input.cols; j++, k++) {
-            temp.at<float>(k, 0)    = static_cast<float>(input.at<uchar>(i, j)) / 255;
-        }
+    switch (GetActivationFunctionType()) {
+        case ACTIVATION_FUNCTION::RELU:
+        case ACTIVATION_FUNCTION::SIGMOID:
+            for(int i = 0, k = 0; i < input.rows; i++) {
+                for(int j = 0; j < input.cols; j++, k++) {
+                    temp.at<float>(k, 0)    = static_cast<float>(input.at<uchar>(i, j)) / 255;
+                }
+            }
+            break;
+        case ACTIVATION_FUNCTION::TANH:
+            for(int i = 0, k = 0; i < input.rows; i++) {
+                for(int j = 0; j < input.cols; j++, k++) {
+                    temp.at<float>(k, 0)    = (static_cast<float>(input.at<uchar>(i, j)) - 128) / 128;
+                }
+            }
+            break;
+        case ACTIVATION_FUNCTION::NONE:
+        default:
+            for(int i = 0, k = 0; i < input.rows; i++) {
+                for(int j = 0; j < input.cols; j++, k++) {
+                    temp.at<float>(k, 0)    = static_cast<float>(input.at<uchar>(i, j));
+                }
+            }
+            break;
     }
 
     SetTrainingInputLayer(idx, std::move(temp));
