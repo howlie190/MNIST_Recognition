@@ -445,7 +445,7 @@ void Image_MLP::SetInput(const cv::Mat &input) {
     cv::Mat temp((int)GetNumberOfInputLayer(), 1, CV_32FC1);
 
     switch (GetActivationFunctionType()) {
-
+        case ACTIVATION_FUNCTION::RELU:
         case ACTIVATION_FUNCTION::SIGMOID:
             for(int i = 0, k = 0; i < input.rows; i++) {
                 for(int j = 0; j < input.cols; j++, k++) {
@@ -460,7 +460,6 @@ void Image_MLP::SetInput(const cv::Mat &input) {
                 }
             }
             break;
-        case ACTIVATION_FUNCTION::RELU:
         case ACTIVATION_FUNCTION::NONE:
         default:
             for(int i = 0, k = 0; i < input.rows; i++) {

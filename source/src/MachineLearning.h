@@ -23,6 +23,8 @@
 extern "C" {
 #endif
 
+//============================================================================================================
+//執行緒池
 class MACHINE_LEARNING_API ThreadPool {
 public:
     explicit ThreadPool(size_t threads) : stop(false) {
@@ -90,11 +92,16 @@ private:
     std::condition_variable             condition;
     bool                                stop;
 };
-
+//============================================================================================================
+//機器學習interface
 class MACHINE_LEARNING_API Machine_Learning {
 public:
     Machine_Learning(const Machine_Learning&) = delete;
     Machine_Learning& operator=(const Machine_Learning&) = delete;
+
+    virtual ~Machine_Learning() {
+        delete thread_pool;
+    }
 
     void SetTrainDataSetPath(std::string path) { train_data_set_path = std::move(path); }               //設定訓練集路徑
     void SetTestDataSetPath(std::string path) { test_data_set_path = std::move(path); }                 //設定測試集路徑
@@ -112,7 +119,7 @@ protected:
     virtual bool                    SaveModel(const char*, const char*, bool) = 0;                      //儲存模型
     virtual bool                    LoadModel(const char*) = 0;                                         //載入模型
 
-    ThreadPool* thread_pool{};
+    ThreadPool* thread_pool{};                                                                          //執行緒池
 private:
     std::string train_data_set_path;                                                                    //訓練集路徑
     std::string test_data_set_path;                                                                     //測試集路徑

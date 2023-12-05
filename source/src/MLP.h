@@ -135,11 +135,6 @@ private:
     std::vector<cv::Mat>                        update_layer_bias_values;                   //更新用每層節點偏置值
     std::vector<cv::Mat>                        mlp_layer_value_predict;                    //測試預測用的節點數值
 
-    std::vector<std::unique_ptr<boost::thread>> vec_thread;                                 //多執行續容器
-    std::vector<std::unique_ptr<boost::thread>> vec_weight_thread;
-    std::vector<std::unique_ptr<boost::thread>> vec_bias_thread;
-    std::vector<std::unique_ptr<boost::thread>> vec_layer_thread;
-
     std::vector<double>                         output_loss_value;                          //損失值
     std::vector<cv::Mat>                        label_value;                                //標籤值
     std::vector<cv::Mat>                        output_value;                               //輸出值
